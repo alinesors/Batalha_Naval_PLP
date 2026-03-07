@@ -68,12 +68,31 @@ impl EstadoTabuleiro {
         }
     }
 
-    pub fn posicionar_navio(&mut self, nome: &str, x: usize, y: usize, tamanho: usize, horizontal: bool) -> Result<(), String> {
+    pub fn validar_posicao_navio(
+        &self,
+        x: usize,
+        y: usize,
+        tamanho: usize,
+        horizontal: bool,
+    ) -> Result<(), String> {
         for i in 0..tamanho {
             let (nx, ny) = if horizontal { (x + i, y) } else { (x, y + i) };
-            if nx >= BOARD_SIZE || ny >= BOARD_SIZE { return Err("Fora do mapa".into()); }
-            if self.cells[nx][ny] != Celula::Vazio { return Err("Posição ocupada".into()); }
+            if nx >= BOARD_SIZE || ny >= BOARD_SIZE {
+                return Err("Fora do mapa".into());
+            }
+            if self.cells[nx][ny] != Celula::Vazio {
+                return Err("Posição ocupada".into());
+            }
         }
+        Ok(())
+    }
+
+    pub fn pode_posicionar_navio(&self, x: usize, y: usize, tamanho: usize, horizontal: bool) -> bool {
+        self.validar_posicao_navio(x, y, tamanho, horizontal).is_ok()
+    }
+
+    pub fn posicionar_navio(&mut self, nome: &str, x: usize, y: usize, tamanho: usize, horizontal: bool) -> Result<(), String> {
+        self.validar_posicao_navio(x, y, tamanho, horizontal)?;
 
         let navio_idx = self.navios.len();
         self.navios.push(Navio::novo(nome, tamanho));

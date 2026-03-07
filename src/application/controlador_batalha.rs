@@ -4,7 +4,7 @@ use godot::classes::{
 use godot::global::MouseButton;
 use godot::prelude::*;
 
-use crate::application::fase_posicionamento::FasePosicionamento;
+use crate::application::fase_posicionamento::{FasePosicionamento, PreviewPosicionamento};
 use crate::domain::disparo::ResultadoDisparo;
 use crate::domain::jogador::Jogador;
 use crate::domain::jogador_ia::JogadorIA;
@@ -29,6 +29,7 @@ pub struct ControladorBatalha {
     fase: FaseJogo,
     tempo_restante_ia: f64,
     tooltip_instrucao: Option<Gd<Label>>,
+    preview_posicionamento: Option<PreviewPosicionamento>,
     base: Base<Node2D>,
 }
 
@@ -42,6 +43,7 @@ impl INode2D for ControladorBatalha {
             fase: FaseJogo::PosicionandoJogador,
             tempo_restante_ia: 0.0,
             tooltip_instrucao: None,
+            preview_posicionamento: None,
             base,
         }
     }
@@ -60,6 +62,7 @@ impl INode2D for ControladorBatalha {
         self.atualizar_tooltip_posicionamento();
 
         if self.fase == FaseJogo::PosicionandoJogador {
+            self.atualizar_preview_posicionamento();
             let input = Input::singleton();
             if input.is_action_just_pressed("rotacionar_navio") {
                 self.fase_posicionamento.alternar_orientacao();
@@ -68,6 +71,8 @@ impl INode2D for ControladorBatalha {
                     self.fase_posicionamento.orientacao_texto().to_lowercase()
                 );
             }
+        } else {
+            self.limpar_preview_posicionamento();
         }
 
         if self.fase == FaseJogo::TurnoIAAguardandoDelay {
@@ -176,8 +181,63 @@ impl ControladorBatalha {
             .jogador_mut()
             .tabuleiro_mut()
             .preencher_aleatoriamente();
+        self.limpar_preview_posicionamento();
         self.fase = FaseJogo::TurnoJogador;
         godot_print!("Frotas prontas. Batalha iniciada! O jogador começa atirando.");
+    }
+
+    fn atualizar_preview_posicionamento(&mut self) {
+        let Some(player_map) = self.base().try_get_node_as::<TileMapLayer>("CampoJogador") else {
+            return;
+        };
+        let Some(mut preview_map) = self
+            .base()
+            .try_get_node_as::<TileMapLayer>("PreviewPosicionamento")
+        else {
+            return;
+        };
+
+        preview_map.clear();
+
+        let mouse_pos = self.base().get_global_mouse_position();
+        let Some((x, y, _)) = Self::coordenada_tabuleiro_do_clique(player_map, mouse_pos) else {
+            self.preview_posicionamento = None;
+            return;
+        };
+
+        let Some(preview) = self
+            .fase_posicionamento
+            .preview_na_posicao(&self.jogador_humano, x, y)
+        else {
+            self.preview_posicionamento = None;
+            return;
+        };
+
+        let atlas = if preview.valido {
+            Vector2i::new(8, 7)
+        } else {
+            Vector2i::new(10, 3)
+        };
+
+        for (px, py) in preview.celulas.iter() {
+            preview_map
+                .set_cell_ex(Vector2i::new(*px as i32, *py as i32))
+                .source_id(0)
+                .atlas_coords(atlas)
+                .done();
+        }
+
+        self.preview_posicionamento = Some(preview);
+    }
+
+    fn limpar_preview_posicionamento(&mut self) {
+        if let Some(mut preview_map) = self
+            .base()
+            .try_get_node_as::<TileMapLayer>("PreviewPosicionamento")
+        {
+            preview_map.clear();
+        }
+        self.preview_posicionamento = None;
     }
 
     fn tratar_clique_disparo_jogador(&mut self, click_pos: Vector2) {
