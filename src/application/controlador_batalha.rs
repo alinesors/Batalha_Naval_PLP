@@ -4,11 +4,14 @@ use godot::classes::{
 use godot::global::MouseButton;
 use godot::prelude::*;
 
-use crate::application::fase_posicionamento::{FasePosicionamento, PreviewPosicionamento};
+use crate::application::fase_posicionamento::FasePosicionamento;
 use crate::domain::disparo::ResultadoDisparo;
 use crate::domain::jogador::Jogador;
 use crate::domain::jogador_ia::JogadorIA;
-use crate::domain::tabuleiro::{Celula, BOARD_SIZE};
+use crate::domain::tabuleiro::BOARD_SIZE;
+use crate::presentation::tabuleiro_visual::{
+    limpar_preview, render_preview_posicionamento, render_resultado_disparo, render_tabuleiro_jogador,
+};
 
 const DELAY_TURNO_IA: f64 = 0.7;
 
@@ -29,7 +32,6 @@ pub struct ControladorBatalha {
     fase: FaseJogo,
     tempo_restante_ia: f64,
     tooltip_instrucao: Option<Gd<Label>>,
-    preview_posicionamento: Option<PreviewPosicionamento>,
     base: Base<Node2D>,
 }
 
@@ -43,7 +45,6 @@ impl INode2D for ControladorBatalha {
             fase: FaseJogo::PosicionandoJogador,
             tempo_restante_ia: 0.0,
             tooltip_instrucao: None,
-            preview_posicionamento: None,
             base,
         }
     }
@@ -197,11 +198,9 @@ impl ControladorBatalha {
             return;
         };
 
-        preview_map.clear();
-
         let mouse_pos = self.base().get_global_mouse_position();
         let Some((x, y, _)) = Self::coordenada_tabuleiro_do_clique(player_map, mouse_pos) else {
-            self.preview_posicionamento = None;
+            limpar_preview(&mut preview_map);
             return;
         };
 
@@ -209,27 +208,10 @@ impl ControladorBatalha {
             .fase_posicionamento
             .preview_na_posicao(&self.jogador_humano, x, y)
         else {
-            self.preview_posicionamento = None;
+            limpar_preview(&mut preview_map);
             return;
         };
-
-        // Usa sempre o tile de navio e muda apenas o filtro de cor do preview.
-        let atlas = Vector2i::new(8, 7);
-        if preview.valido {
-            preview_map.set_modulate(Color::from_rgba(0.35, 1.0, 0.35, 0.70));
-        } else {
-            preview_map.set_modulate(Color::from_rgba(1.0, 0.35, 0.35, 0.70));
-        }
-
-        for (px, py) in preview.celulas.iter() {
-            preview_map
-                .set_cell_ex(Vector2i::new(*px as i32, *py as i32))
-                .source_id(0)
-                .atlas_coords(atlas)
-                .done();
-        }
-
-        self.preview_posicionamento = Some(preview);
+        render_preview_posicionamento(&mut preview_map, &preview.celulas, preview.valido);
     }
 
     fn limpar_preview_posicionamento(&mut self) {
@@ -237,10 +219,8 @@ impl ControladorBatalha {
             .base()
             .try_get_node_as::<TileMapLayer>("PreviewPosicionamento")
         {
-            preview_map.clear();
-            preview_map.set_modulate(Color::WHITE);
+            limpar_preview(&mut preview_map);
         }
-        self.preview_posicionamento = None;
     }
 
     fn tratar_clique_disparo_jogador(&mut self, click_pos: Vector2) {
@@ -257,7 +237,7 @@ impl ControladorBatalha {
         let retorno = self.jogador_ia.receber_disparo(x, y);
         godot_print!("{}", retorno.mensagem);
 
-        self.atualizar_celula_visual_disparo(&mut enemy_map, map_coord, &retorno.resultado);
+        render_resultado_disparo(&mut enemy_map, map_coord, &retorno.resultado);
 
         if self.verificar_fim_de_jogo() {
             return;
@@ -283,7 +263,7 @@ impl ControladorBatalha {
         godot_print!("Turno da IA: {}", retorno.mensagem);
 
         if let Some(mut player_map) = self.base().try_get_node_as::<TileMapLayer>("CampoJogador") {
-            self.atualizar_celula_visual_disparo(
+            render_resultado_disparo(
                 &mut player_map,
                 Vector2i::new(x as i32, y as i32),
                 &retorno.resultado,
@@ -338,62 +318,9 @@ impl ControladorBatalha {
         Some((map_coord.x as usize, map_coord.y as usize, map_coord))
     }
 
-    fn atualizar_celula_visual_disparo(
-        &self,
-        map: &mut Gd<TileMapLayer>,
-        map_coord: Vector2i,
-        resultado: &ResultadoDisparo,
-    ) {
-        match resultado {
-            ResultadoDisparo::Agua => {
-                map.set_cell_ex(map_coord)
-                    .source_id(0)
-                    .atlas_coords(Vector2i::new(8, 3))
-                    .done();
-            }
-            ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_) => {
-                map.set_cell_ex(map_coord)
-                    .source_id(0)
-                    .atlas_coords(Vector2i::new(10, 3))
-                    .done();
-            }
-            ResultadoDisparo::JaDisparado | ResultadoDisparo::ForaDosLimites => {}
-        }
-    }
-
     fn atualizar_visual_meu_campo(&mut self) {
         if let Some(mut player_map) = self.base().try_get_node_as::<TileMapLayer>("CampoJogador") {
-            for x in 0..BOARD_SIZE {
-                for y in 0..BOARD_SIZE {
-                    let map_coord = Vector2i::new(x as i32, y as i32);
-                    if let Some(celula) = self.jogador_humano.tabuleiro().valor_celula(x, y) {
-                        match celula {
-                            Celula::Ocupado(_) => {
-                                player_map
-                                    .set_cell_ex(map_coord)
-                                    .source_id(0)
-                                    .atlas_coords(Vector2i::new(8, 7))
-                                    .done();
-                            }
-                            Celula::Agua => {
-                                player_map
-                                    .set_cell_ex(map_coord)
-                                    .source_id(0)
-                                    .atlas_coords(Vector2i::new(8, 3))
-                                    .done();
-                            }
-                            Celula::Atingido(_) => {
-                                player_map
-                                    .set_cell_ex(map_coord)
-                                    .source_id(0)
-                                    .atlas_coords(Vector2i::new(10, 3))
-                                    .done();
-                            }
-                            Celula::Vazio => {}
-                        }
-                    }
-                }
-            }
+            render_tabuleiro_jogador(&mut player_map, self.jogador_humano.tabuleiro());
         }
     }
 }
