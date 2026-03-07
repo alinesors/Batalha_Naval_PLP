@@ -6,3 +6,5 @@ pub mod gerenciador_interface;
 pub mod gerenciador_turnos;
 pub mod helpers;
 
+//usuario
+pub mod services;
