@@ -1,11 +1,11 @@
-[gd_scene format=3 uid="uid://cyajyx2jydx8w"]
+[gd_scene format=3 uid="uid://doq1yqqmf3pi8"]
 
-[ext_resource type="Script" path="res://scenes/modo_campanha.gd" id="1_4b4o7"]
-[ext_resource type="Texture2D" path="res://docs/modo campanha/Background modo campanha.png" id="2_8r751"]
-[ext_resource type="Texture2D" path="res://docs/modo campanha/Navio modo campanha.png" id="3_2r5ci"]
+[ext_resource type="Script" uid="uid://lakh22po1b1c" path="res://scenes/modo_campanha.gd" id="1_4b4o7"]
+[ext_resource type="Texture2D" uid="uid://diwy8f0lrhb22" path="res://docs/modo campanha/Background modo campanha.png" id="2_8r751"]
+[ext_resource type="Texture2D" uid="uid://b03n1cr331moj" path="res://docs/modo campanha/Navio modo campanha.png" id="3_2r5ci"]
 [ext_resource type="FontFile" uid="uid://cbvk8gbmixmbq" path="res://fonts/Retro Gaming.ttf" id="4_d8jto"]
 
-[node name="ModoCampanha" type="Control"]
+[node name="ModoCampanha" type="Control" unique_id=1417522544]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,7 +14,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_4b4o7")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=698641362]
+z_index = -10
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,44 +26,56 @@ texture = ExtResource("2_8r751")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="ProgressLine" type="Line2D" parent="."]
-position = Vector2(0, 0)
-width = 6.0
-default_color = Color(0.968627, 0.603922, 0.137255, 0.9)
+[node name="ProgressLine" type="Line2D" parent="." unique_id=1162467344]
+points = PackedVector2Array(1, 1, 359, 503, 202, -107)
+width = 3.0
+default_color = Color(0.760784, 0.898039, 0.980392, 0.9)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
 antialiased = true
 
-[node name="IAFacil" type="Label" parent="."]
+[node name="IAFacil" type="Label" parent="." unique_id=434794465]
+layout_mode = 0
 offset_right = 162.0
 offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.862745, 0.25098, 0.25098, 1)
+theme_override_colors/font_outline_color = Color(0.027451, 0.121569, 0.2, 0.9)
+theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("4_d8jto")
-theme_override_font_sizes/font_size = 28
-theme_override_colors/font_color = Color(0.968627, 0.603922, 0.137255, 1)
+theme_override_font_sizes/font_size = 14
 text = "IA facil"
 
-[node name="IAIntermediaria" type="Label" parent="."]
+[node name="IAIntermediaria" type="Label" parent="." unique_id=1695164412]
+layout_mode = 0
 offset_right = 285.0
 offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.862745, 0.25098, 0.25098, 1)
+theme_override_colors/font_outline_color = Color(0.027451, 0.121569, 0.2, 0.9)
+theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("4_d8jto")
-theme_override_font_sizes/font_size = 28
-theme_override_colors/font_color = Color(0.968627, 0.603922, 0.137255, 1)
+theme_override_font_sizes/font_size = 14
 text = "IA intermediaria"
 
-[node name="IADificil" type="Label" parent="."]
+[node name="IADificil" type="Label" parent="." unique_id=448019012]
+layout_mode = 0
 offset_right = 175.0
 offset_bottom = 38.0
+theme_override_colors/font_color = Color(0.862745, 0.25098, 0.25098, 1)
+theme_override_colors/font_outline_color = Color(0.027451, 0.121569, 0.2, 0.9)
+theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("4_d8jto")
-theme_override_font_sizes/font_size = 28
-theme_override_colors/font_color = Color(0.968627, 0.603922, 0.137255, 1)
+theme_override_font_sizes/font_size = 14
 text = "IA dificil"
 
-[node name="Ship" type="Sprite2D" parent="."]
-position = Vector2(320, 320)
+[node name="Ship" type="Sprite2D" parent="." unique_id=165950354]
+position = Vector2(151, 917)
 texture = ExtResource("3_2r5ci")
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=776535780]
 
-[node name="Hint" type="Label" parent="HUD"]
-anchors_preset = 10
+[node name="Hint" type="Label" parent="HUD" unique_id=449306931]
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -512.0
@@ -70,7 +83,9 @@ offset_top = 16.0
 offset_right = 512.0
 offset_bottom = 48.0
 grow_horizontal = 2
-theme_override_fonts/font = ExtResource("4_d8jto")
-theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.941176, 0.901961, 0.807843, 1)
+theme_override_colors/font_outline_color = Color(0.027451, 0.121569, 0.2, 0.9)
+theme_override_constants/outline_size = 1
+theme_override_fonts/font = ExtResource("4_d8jto")
+theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
