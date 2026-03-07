@@ -292,45 +292,6 @@ impl EstrategiaDificil {
         
         sequencia
     }
-
-    fn sequencia_esta_fechada(&self, sequencia: &[(usize, usize)]) -> bool {
-        if sequencia.is_empty() {
-            return false;
-        }
-
-        let mut min_x = sequencia[0].0;
-        let mut max_x = sequencia[0].0;
-        let mut min_y = sequencia[0].1;
-        let mut max_y = sequencia[0].1;
-
-        for &(x, y) in sequencia {
-            min_x = min_x.min(x);
-            max_x = max_x.max(x);
-            min_y = min_y.min(y);
-            max_y = max_y.max(y);
-        }
-
-        let horizontal = min_x == max_x;
-        let vertical = min_y == max_y;
-
-        if !horizontal && !vertical {
-            return false;
-        }
-
-        if horizontal {
-            let fechada_esquerda = min_y == 0 || self.mapa_conhecimento[min_x][min_y - 1] == EstadoCelula::Agua;
-            let fechada_direita = max_y == BOARD_SIZE - 1 || self.mapa_conhecimento[max_x][max_y + 1] == EstadoCelula::Agua;
-            return fechada_esquerda && fechada_direita;
-        }
-
-        if vertical {
-            let fechada_cima = min_x == 0 || self.mapa_conhecimento[min_x - 1][min_y] == EstadoCelula::Agua;
-            let fechada_baixo = max_x == BOARD_SIZE - 1 || self.mapa_conhecimento[max_x + 1][max_y] == EstadoCelula::Agua;
-            return fechada_cima && fechada_baixo;
-        }
-
-        false
-    }
 }
 
 impl EstrategiaIA for EstrategiaDificil {
@@ -344,33 +305,7 @@ impl EstrategiaIA for EstrategiaDificil {
         match &resultado.resultado {
             ResultadoDisparo::Agua => {
                 self.mapa_conhecimento[x][y] = EstadoCelula::Agua;
-                
-                let acertos_clone = self.acertos_ativos.clone();
-                for &(ax, ay) in &acertos_clone {
-                    let dx = (ax as i32 - x as i32).abs();
-                    let dy = (ay as i32 - y as i32).abs();
-                    
-                    if (dx == 1 && dy == 0) || (dx == 0 && dy == 1) {
-                        let sequencia = self.encontrar_sequencia_conectada(ax, ay);
-                        
-                        if sequencia.len() > 1 && self.sequencia_esta_fechada(&sequencia) {
-                            let tamanho = sequencia.len();
-                            
-                            if let Some(count) = self.navios_restantes.get_mut(&tamanho) {
-                                if *count > 0 {
-                                    *count -= 1;
-                                    godot_print!("IA Difícil: Navio tamanho {} agora confirmado fechado! Restantes: {:?}", 
-                                        tamanho, self.navios_restantes);
-                                }
-                            }
-                            
-                            for &pos in &sequencia {
-                                self.acertos_ativos.retain(|&p| p != pos);
-                            }
-                        }
-                        break;
-                    }
-                }
+                // A confirmação de navios destruídos agora vem exclusivamente do som de destruição
             }
             ResultadoDisparo::Acerto => {
                 self.mapa_conhecimento[x][y] = EstadoCelula::Acerto;
@@ -390,30 +325,22 @@ impl EstrategiaIA for EstrategiaDificil {
                     self.todos_acertos.push((x, y));
                 }
 
+                // A IA "ouve" o som de destruição e tem certeza absoluta!
                 let sequencia = self.encontrar_sequencia_conectada(x, y);
-                let esta_fechada = self.sequencia_esta_fechada(&sequencia);
-                
                 let tamanho_calculado = sequencia.len();
 
-                if esta_fechada {
-                    if let Some(count) = self.navios_restantes.get_mut(&tamanho_calculado) {
-                        if *count > 0 {
-                            *count -= 1;
-                            godot_print!("IA Difícil: {} confirmado afundado (tamanho {}, fechado)! Restantes: {:?}", 
-                                nome_navio, tamanho_calculado, self.navios_restantes);
-                        }
+                // Confia totalmente no som de destruição - o navio foi completamente destruído
+                if let Some(count) = self.navios_restantes.get_mut(&tamanho_calculado) {
+                    if *count > 0 {
+                        *count -= 1;
+                        godot_print!("IA Difícil: 🔊 Som de destruição detectado! {} confirmado afundado (tamanho {})! Restantes: {:?}", 
+                            nome_navio, tamanho_calculado, self.navios_restantes);
                     }
+                }
 
-                    for &pos in &sequencia {
-                        self.acertos_ativos.retain(|&p| p != pos);
-                    }
-                } else {
-                    godot_print!("IA Difícil: {} pode não estar completo (tamanho {} visível, não fechado). Mantendo incerteza.", 
-                        nome_navio, tamanho_calculado);
-                    
-                    if !self.acertos_ativos.contains(&(x, y)) {
-                        self.acertos_ativos.push((x, y));
-                    }
+                // Remove todos os acertos dessa sequência da lista ativa
+                for &pos in &sequencia {
+                    self.acertos_ativos.retain(|&p| p != pos);
                 }
             }
             _ => {}

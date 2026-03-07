@@ -1,5 +1,6 @@
 [gd_scene format=4 uid="uid://bh2ybm5vdqk2p"]
 
+[ext_resource type="Script" path="res://scenes/cena_batalha.gd" id="1_2h13w"]
 [ext_resource type="Texture2D" uid="uid://gmam350tbtik" path="res://textures/Water+.png" id="1_6klpq"]
 [ext_resource type="Texture2D" uid="uid://cwqcuqlumtydj" path="res://textures/bordas.png" id="2_2jp3k"]
 [ext_resource type="Texture2D" uid="uid://cqlq0gpfenhvv" path="res://textures/marcador.png" id="3_mt5k5"]
@@ -353,10 +354,11 @@ sources/2 = SubResource("TileSetAtlasSource_8pi0p")
 sources/3 = SubResource("TileSetAtlasSource_naiih")
 
 [node name="Batalha" type="Node2D" unique_id=1451474705]
+script = ExtResource("1_2h13w")
 
 [node name="ParallaxBackground" type="Parallax2D" parent="." unique_id=54903957]
-repeat_size = Vector2(32, 32)
-autoscroll = Vector2(-16, -12)
+repeat_size = Vector2(64, 64)
+autoscroll = Vector2(-10, -6)
 repeat_times = 5
 
 [node name="TileMapLayer" type="TileMapLayer" parent="ParallaxBackground" unique_id=1741967360]
@@ -365,21 +367,39 @@ tile_set = SubResource("TileSet_fw6bw")
 
 [node name="ControladorBatalha" type="ControladorBatalha" parent="." unique_id=200106303]
 
+[node name="AudioManager" type="Node2D" parent="ControladorBatalha" unique_id=453797652]
+
+[node name="sfx_destruicao" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=1333424358]
+
+[node name="sfx_splash" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=97408776]
+
+[node name="sfx_acerto" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=1620608918]
+
+[node name="som_ondas" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=1347434740]
+
+[node name="musica_fundo_batalha" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=929472610]
+
+[node name="sfx_disparo" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=705756159]
+
+[node name="sfx_som_derrota" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=1741884981]
+
+[node name="sfx_som_vitoria" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=1785484865]
+
 [node name="CampoJogador" type="TileMapLayer" parent="ControladorBatalha" unique_id=188811023]
 position = Vector2(92, 122)
 tile_map_data = PackedByteArray("AAABAAEAAAAFAAEAAAABAAIAAAAGAAEAAAABAAMAAAAFAAEAAAABAAQAAAAGAAEAAAABAAUAAAAFAAEAAAABAAYAAAAGAAEAAAABAAcAAAAFAAEAAAABAAgAAAAGAAEAAAABAAkAAAAFAAEAAAACAAIAAAAFAAEAAAACAAMAAAAGAAEAAAACAAQAAAAFAAEAAAACAAUAAAAGAAEAAAACAAYAAAAFAAEAAAACAAcAAAAGAAEAAAACAAgAAAAFAAEAAAACAAkAAAAGAAEAAAADAAIAAAAGAAEAAAADAAMAAAAFAAEAAAADAAQAAAAGAAEAAAADAAUAAAAFAAEAAAADAAYAAAAGAAEAAAADAAcAAAAFAAEAAAADAAgAAAAGAAEAAAADAAkAAAAFAAEAAAAEAAEAAAAGAAEAAAAEAAIAAAAFAAEAAAAEAAMAAAAGAAEAAAAEAAQAAAAFAAEAAAAEAAUAAAAGAAEAAAAEAAYAAAAFAAEAAAAEAAcAAAAGAAEAAAAEAAgAAAAFAAEAAAAEAAkAAAAGAAEAAAAFAAEAAAAFAAEAAAAFAAIAAAAGAAEAAAAFAAMAAAAFAAEAAAAFAAQAAAAGAAEAAAAFAAUAAAAFAAEAAAAFAAYAAAAGAAEAAAAFAAcAAAAFAAEAAAAFAAgAAAAGAAEAAAAFAAkAAAAFAAEAAAAGAAEAAAAGAAEAAAAGAAIAAAAFAAEAAAAGAAMAAAAGAAEAAAAGAAQAAAAFAAEAAAAGAAUAAAAGAAEAAAAGAAYAAAAFAAEAAAAGAAcAAAAGAAEAAAAGAAgAAAAFAAEAAAAGAAkAAAAGAAEAAAAHAAEAAAAFAAEAAAAHAAIAAAAGAAEAAAAHAAMAAAAFAAEAAAAHAAQAAAAGAAEAAAAHAAUAAAAFAAEAAAAHAAYAAAAGAAEAAAAHAAcAAAAFAAEAAAAHAAgAAAAGAAEAAAAHAAkAAAAFAAEAAAAIAAEAAAAGAAEAAAAIAAIAAAAFAAEAAAAIAAMAAAAGAAEAAAAIAAQAAAAFAAEAAAAIAAUAAAAGAAEAAAAIAAYAAAAFAAEAAAAIAAcAAAAGAAEAAAAIAAgAAAAFAAEAAAAIAAkAAAAGAAEAAAAJAAEAAAAFAAEAAAAJAAIAAAAGAAEAAAAJAAMAAAAFAAEAAAAJAAQAAAAGAAEAAAAJAAUAAAAFAAEAAAAJAAYAAAAGAAEAAAAJAAcAAAAFAAEAAAAJAAgAAAAGAAEAAAAJAAkAAAAFAAEAAAACAAEAAAAGAAEAAAAAAAAAAAAFAAEAAAAAAAEAAAAGAAEAAAAAAAIAAAAFAAEAAAAAAAMAAAAGAAEAAAAAAAUAAAAGAAEAAAAAAAYAAAAFAAEAAAAAAAcAAAAGAAEAAAAAAAgAAAAFAAEAAAAAAAkAAAAGAAEAAAABAAAAAAAGAAEAAAADAAAAAAAGAAEAAAAEAAAAAAAFAAEAAAAFAAAAAAAGAAEAAAAGAAAAAAAFAAEAAAAHAAAAAAAGAAEAAAAIAAAAAAAFAAEAAAAJAAAAAAAGAAEAAAAJAP//AgABAAAAAAAIAP//AgABAAAAAAAHAP//AgABAAAAAAAGAP//AgABAAAAAAAFAP//AgABAAAAAAAEAP//AgABAAAAAAADAP//AgABAAAAAAACAP//AgABAAAAAAABAP//AgABAAAAAAAAAP//AgABAAAAAAD/////AgAAAAAAAAADAAEAAAAFAAEAAAACAAAAAAAFAAEAAAAAAAQAAAAFAAEAAAD//wAAAgAAAAEAAAD//wEAAgAAAAEAAAD//wIAAgAAAAEAAAD//wMAAgAAAAEAAAD//wQAAgAAAAEAAAD//wUAAgAAAAEAAAD//wYAAgAAAAEAAAD//wcAAgAAAAEAAAD//wgAAgAAAAEAAAD//wkAAgAAAAEAAAD//woAAgAAAAIAAAAAAAoAAgABAAIAAAABAAoAAgABAAIAAAACAAoAAgABAAIAAAADAAoAAgABAAIAAAAEAAoAAgABAAIAAAAFAAoAAgABAAIAAAAGAAoAAgABAAIAAAAHAAoAAgABAAIAAAAIAAoAAgABAAIAAAAJAAoAAgABAAIAAAAKAAoAAgACAAIAAAAKAAkAAgACAAEAAAAKAAgAAgACAAEAAAAKAAcAAgACAAEAAAAKAAYAAgACAAEAAAAKAAUAAgACAAEAAAAKAAQAAgACAAEAAAAKAAMAAgACAAEAAAAKAAIAAgACAAEAAAAKAAEAAgACAAEAAAAKAAAAAgACAAEAAAAKAP//AgACAAAAAAA=")
-tile_set = SubResource("TileSet_rq1qq")
-
-[node name="PreviewPosicionamento" type="TileMapLayer" parent="ControladorBatalha"]
-position = Vector2(92, 122)
 tile_set = SubResource("TileSet_rq1qq")
 
 [node name="Sprite2D" type="Sprite2D" parent="ControladorBatalha/CampoJogador" unique_id=2126277640]
 position = Vector2(8, 8)
 texture = ExtResource("3_mt5k5")
 
+[node name="PreviewPosicionamento" type="TileMapLayer" parent="ControladorBatalha" unique_id=1299454012]
+position = Vector2(92, 122)
+tile_set = SubResource("TileSet_rq1qq")
+
 [node name="CampoIA" type="TileMapLayer" parent="ControladorBatalha" unique_id=1922814880]
-position = Vector2(314, 120)
+position = Vector2(349, 121)
 tile_map_data = PackedByteArray("AAABAAAAAAAGAAEAAAACAAAAAAAFAAEAAAADAAAAAAAGAAEAAAAEAAAAAAAFAAEAAAAFAAAAAAAGAAEAAAAGAAAAAAAFAAEAAAAHAAAAAAAGAAEAAAAIAAAAAAAFAAEAAAAJAAAAAAAGAAEAAAAJAAEAAAAFAAEAAAAJAAIAAAAGAAEAAAAJAAMAAAAFAAEAAAAJAAQAAAAGAAEAAAAJAAUAAAAFAAEAAAAJAAYAAAAGAAEAAAAJAAcAAAAFAAEAAAAJAAgAAAAGAAEAAAAJAAkAAAAFAAEAAAAIAAkAAAAGAAEAAAAHAAkAAAAFAAEAAAAGAAkAAAAGAAEAAAAFAAgAAAAGAAEAAAAEAAgAAAAFAAEAAAADAAgAAAAGAAEAAAACAAgAAAAFAAEAAAABAAgAAAAGAAEAAAABAAkAAAAFAAEAAAAAAAkAAAAGAAEAAAACAAkAAAAGAAEAAAADAAkAAAAFAAEAAAAEAAkAAAAGAAEAAAAFAAkAAAAFAAEAAAAGAAgAAAAFAAEAAAAHAAgAAAAGAAEAAAAIAAgAAAAFAAEAAAAIAAcAAAAGAAEAAAAIAAYAAAAFAAEAAAAIAAUAAAAGAAEAAAAHAAQAAAAGAAEAAAAHAAMAAAAFAAEAAAAHAAIAAAAGAAEAAAAIAAIAAAAFAAEAAAAIAAEAAAAGAAEAAAAHAAEAAAAFAAEAAAAGAAEAAAAGAAEAAAAFAAEAAAAFAAEAAAAEAAEAAAAGAAEAAAADAAEAAAAFAAEAAAACAAEAAAAGAAEAAAABAAEAAAAFAAEAAAAAAAEAAAAGAAEAAAAAAAIAAAAFAAEAAAAAAAMAAAAGAAEAAAAAAAQAAAAFAAEAAAAAAAUAAAAGAAEAAAAAAAYAAAAFAAEAAAAAAAcAAAAGAAEAAAAAAAgAAAAFAAEAAAABAAYAAAAGAAEAAAABAAUAAAAFAAEAAAABAAQAAAAGAAEAAAABAAMAAAAFAAEAAAABAAIAAAAGAAEAAAACAAIAAAAFAAEAAAADAAIAAAAGAAEAAAAEAAIAAAAFAAEAAAAFAAIAAAAGAAEAAAAGAAIAAAAFAAEAAAAIAAMAAAAGAAEAAAAIAAQAAAAFAAEAAAAHAAYAAAAGAAEAAAAHAAcAAAAFAAEAAAAGAAcAAAAGAAEAAAAFAAcAAAAFAAEAAAAEAAcAAAAGAAEAAAADAAcAAAAFAAEAAAACAAcAAAAGAAEAAAABAAcAAAAFAAEAAAACAAYAAAAFAAEAAAADAAYAAAAGAAEAAAAEAAYAAAAFAAEAAAAFAAYAAAAGAAEAAAAGAAYAAAAFAAEAAAAGAAUAAAAGAAEAAAAHAAUAAAAFAAEAAAAFAAUAAAAFAAEAAAAEAAUAAAAGAAEAAAADAAUAAAAFAAEAAAACAAUAAAAGAAEAAAACAAQAAAAFAAEAAAACAAMAAAAGAAEAAAADAAMAAAAFAAEAAAAEAAMAAAAGAAEAAAAFAAMAAAAFAAEAAAAGAAMAAAAGAAEAAAAGAAQAAAAFAAEAAAAFAAQAAAAGAAEAAAAEAAQAAAAFAAEAAAADAAQAAAAGAAEAAAAAAAAAAAAFAAEAAAD/////AgAAAAAAAAD//wAAAgAAAAEAAAD//wEAAgAAAAEAAAD//wIAAgAAAAEAAAD//wMAAgAAAAEAAAD//wQAAgAAAAEAAAD//wUAAgAAAAEAAAD//wYAAgAAAAEAAAD//wcAAgAAAAEAAAD//wgAAgAAAAEAAAD//wkAAgAAAAEAAAD//woAAgAAAAIAAAAAAAoAAgABAAIAAAABAAoAAgABAAIAAAACAAoAAgABAAIAAAADAAoAAgABAAIAAAAEAAoAAgABAAIAAAAFAAoAAgABAAIAAAAGAAoAAgABAAIAAAAHAAoAAgABAAIAAAAIAAoAAgABAAIAAAAJAAoAAgABAAIAAAAKAAoAAgACAAIAAAAKAAkAAgACAAEAAAAKAAgAAgACAAEAAAAKAAcAAgACAAEAAAAKAAYAAgACAAEAAAAKAAUAAgACAAEAAAAKAAQAAgACAAEAAAAKAAMAAgACAAEAAAAKAAIAAgACAAEAAAAKAAEAAgACAAEAAAAKAAAAAgACAAEAAAAKAP//AgACAAAAAAAAAP//AgABAAAAAAABAP//AgABAAAAAAACAP//AgABAAAAAAADAP//AgABAAAAAAAEAP//AgABAAAAAAAFAP//AgABAAAAAAAGAP//AgABAAAAAAAHAP//AgABAAAAAAAIAP//AgABAAAAAAAJAP//AgABAAAAAAA=")
 tile_set = SubResource("TileSet_rq1qq")
 
@@ -387,6 +407,61 @@ tile_set = SubResource("TileSet_rq1qq")
 position = Vector2(8, 8)
 texture = ExtResource("3_mt5k5")
 
+[node name="LabelFase" type="Label" parent="ControladorBatalha" unique_id=1694559566]
+offset_right = 40.0
+offset_bottom = 21.0
+
+[node name="LabelTurno" type="Label" parent="ControladorBatalha" unique_id=1994485168]
+offset_right = 40.0
+offset_bottom = 21.0
+
+[node name="LabelResultado" type="Label" parent="ControladorBatalha" unique_id=496982328]
+offset_right = 40.0
+offset_bottom = 21.0
+
+[node name="LabelReiniciar" type="Label" parent="ControladorBatalha" unique_id=277319877]
+offset_right = 40.0
+offset_bottom = 21.0
+
+[node name="LabelInstrucaoDificuldade" type="Label" parent="ControladorBatalha" unique_id=401151362]
+offset_right = 40.0
+offset_bottom = 21.0
+
+[node name="LabelAjudaPosicionamento" type="Label" parent="ControladorBatalha" unique_id=2038832908]
+offset_right = 40.0
+offset_bottom = 21.0
+
+[node name="BotaoFacil" type="Button" parent="ControladorBatalha" unique_id=220736241]
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="BotaoMedio" type="Button" parent="ControladorBatalha" unique_id=1791210327]
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="BotaoDificil" type="Button" parent="ControladorBatalha" unique_id=240135036]
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="BotaoVitoriaTeste" type="Button" parent="ControladorBatalha"]
+offset_left = 446.0
+offset_top = 12.0
+offset_right = 592.0
+offset_bottom = 42.0
+text = "Ganhar (Teste)"
+
+[node name="BotaoDerrotaTeste" type="Button" parent="ControladorBatalha"]
+offset_left = 446.0
+offset_top = 46.0
+offset_right = 592.0
+offset_bottom = 76.0
+text = "Perder (Teste)"
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1329829903]
 position = Vector2(300, 200)
-zoom = Vector2(0.8, 0.8)
+
+[connection signal="pressed" from="ControladorBatalha/BotaoFacil" to="ControladorBatalha" method="selecionar_dificuldade_facil"]
+[connection signal="pressed" from="ControladorBatalha/BotaoMedio" to="ControladorBatalha" method="selecionar_dificuldade_media"]
+[connection signal="pressed" from="ControladorBatalha/BotaoDificil" to="ControladorBatalha" method="selecionar_dificuldade_dificil"]
+[connection signal="pressed" from="ControladorBatalha/BotaoVitoriaTeste" to="ControladorBatalha" method="vencer_teste"]
+[connection signal="pressed" from="ControladorBatalha/BotaoDerrotaTeste" to="ControladorBatalha" method="perder_teste"]

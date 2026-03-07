@@ -11,18 +11,20 @@ config_version=5
 [application]
 
 config/name="Batalha Naval"
-run/main_scene="uid://bh2ybm5vdqk2p"
+run/main_scene="uid://ckxroacem0nru"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="uid://cd44t56excs3c"
+
+[autoload]
+
+CampaignState="*res://campaign_state.gd"
 
 [display]
 
 window/size/viewport_width=600
 window/size/viewport_height=400
-window/size/mode=4
-window/stretch/mode="viewport"
-window/stretch/aspect="expand"
-window/stretch/scale_mode="integer"
+window/size/mode=3
+window/stretch/mode="canvas_items"
 
 [gui]
 
