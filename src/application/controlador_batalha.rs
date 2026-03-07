@@ -106,6 +106,7 @@ impl ControladorBatalha {
     fn criar_tooltip_instrucao(&mut self) {
         let mut tooltip = Label::new_alloc();
         tooltip.set_visible(false);
+        tooltip.set_scale(Vector2::new(0.5, 0.5));
         self.base_mut().add_child(&tooltip.clone().upcast::<Node>());
         self.tooltip_instrucao = Some(tooltip);
     }
