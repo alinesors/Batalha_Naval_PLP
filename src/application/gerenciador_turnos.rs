@@ -102,6 +102,14 @@ impl GerenciadorTurnos {
         self.numero_turno
     }
 
+    pub fn forcar_vitoria_jogador(&mut self) {
+        self.estado_atual = EstadoTurno::VitoriaJogador;
+    }
+
+    pub fn forcar_vitoria_ia(&mut self) {
+        self.estado_atual = EstadoTurno::VitoriaIA;
+    }
+
     fn avancar_para_turno_ia(&mut self) {
         self.estado_atual = EstadoTurno::TurnoIA;
     }

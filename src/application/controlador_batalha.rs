@@ -30,6 +30,7 @@ pub struct ControladorBatalha {
     tempo_restante_ia: f64,
     estado_anterior: EstadoTurno,
     tooltip_instrucao: Option<Gd<Label>>,
+    resultado_final_emitido: bool,
     base: Base<Node2D>,
 }
 
@@ -52,6 +53,7 @@ impl INode2D for ControladorBatalha {
             tempo_restante_ia: 0.0,
             estado_anterior: EstadoTurno::SelecaoDificuldade,
             tooltip_instrucao: None,
+            resultado_final_emitido: false,
             base,
         }
     }
@@ -116,9 +118,11 @@ impl INode2D for ControladorBatalha {
             match estado_atual {
                 EstadoTurno::VitoriaJogador => {
                     self.gerenciador_audio.tocar_vitoria();
+                    self.emitir_resultado_final(true);
                 }
                 EstadoTurno::VitoriaIA => {
                     self.gerenciador_audio.tocar_derrota();
+                    self.emitir_resultado_final(false);
                 }
                 _ => {}
             }
@@ -182,6 +186,9 @@ impl INode2D for ControladorBatalha {
 
 #[godot_api]
 impl ControladorBatalha {
+    #[signal]
+    fn batalha_encerrada(vitoria: bool);
+
     #[func]
     pub fn selecionar_dificuldade_facil(&mut self) {
         if self.gerenciador_turnos.estado_atual() == EstadoTurno::SelecaoDificuldade {
@@ -211,9 +218,37 @@ impl ControladorBatalha {
             }
         }
     }
+
+    #[func]
+    pub fn vencer_teste(&mut self) {
+        if self.gerenciador_turnos.jogo_terminou() {
+            return;
+        }
+
+        self.gerenciador_turnos.forcar_vitoria_jogador();
+    }
+
+    #[func]
+    pub fn perder_teste(&mut self) {
+        if self.gerenciador_turnos.jogo_terminou() {
+            return;
+        }
+
+        self.gerenciador_turnos.forcar_vitoria_ia();
+    }
 }
 
 impl ControladorBatalha {
+    fn emitir_resultado_final(&mut self, vitoria: bool) {
+        if self.resultado_final_emitido {
+            return;
+        }
+
+        self.resultado_final_emitido = true;
+        self.base_mut()
+            .emit_signal("batalha_encerrada", &[vitoria.to_variant()]);
+    }
+
     fn atualizar_tooltip_posicionamento(&mut self) {
         let Some(mut tooltip) = self.tooltip_instrucao.clone() else {
             return;
@@ -437,4 +472,3 @@ impl ControladorBatalha {
         }
     }
 }
-

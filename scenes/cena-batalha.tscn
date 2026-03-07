@@ -1,5 +1,6 @@
 [gd_scene format=4 uid="uid://bh2ybm5vdqk2p"]
 
+[ext_resource type="Script" path="res://scenes/cena_batalha.gd" id="1_2h13w"]
 [ext_resource type="Texture2D" uid="uid://gmam350tbtik" path="res://textures/Water+.png" id="1_6klpq"]
 [ext_resource type="Texture2D" uid="uid://cwqcuqlumtydj" path="res://textures/bordas.png" id="2_2jp3k"]
 [ext_resource type="Texture2D" uid="uid://cqlq0gpfenhvv" path="res://textures/marcador.png" id="3_mt5k5"]
@@ -353,6 +354,7 @@ sources/2 = SubResource("TileSetAtlasSource_8pi0p")
 sources/3 = SubResource("TileSetAtlasSource_naiih")
 
 [node name="Batalha" type="Node2D" unique_id=1451474705]
+script = ExtResource("1_2h13w")
 
 [node name="ParallaxBackground" type="Parallax2D" parent="." unique_id=54903957]
 repeat_size = Vector2(64, 64)
@@ -441,9 +443,25 @@ offset_bottom = 8.0
 offset_right = 8.0
 offset_bottom = 8.0
 
+[node name="BotaoVitoriaTeste" type="Button" parent="ControladorBatalha"]
+offset_left = 446.0
+offset_top = 12.0
+offset_right = 592.0
+offset_bottom = 42.0
+text = "Ganhar (Teste)"
+
+[node name="BotaoDerrotaTeste" type="Button" parent="ControladorBatalha"]
+offset_left = 446.0
+offset_top = 46.0
+offset_right = 592.0
+offset_bottom = 76.0
+text = "Perder (Teste)"
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1329829903]
 position = Vector2(300, 200)
 
 [connection signal="pressed" from="ControladorBatalha/BotaoFacil" to="ControladorBatalha" method="selecionar_dificuldade_facil"]
 [connection signal="pressed" from="ControladorBatalha/BotaoMedio" to="ControladorBatalha" method="selecionar_dificuldade_media"]
 [connection signal="pressed" from="ControladorBatalha/BotaoDificil" to="ControladorBatalha" method="selecionar_dificuldade_dificil"]
+[connection signal="pressed" from="ControladorBatalha/BotaoVitoriaTeste" to="ControladorBatalha" method="vencer_teste"]
+[connection signal="pressed" from="ControladorBatalha/BotaoDerrotaTeste" to="ControladorBatalha" method="perder_teste"]

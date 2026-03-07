@@ -9,6 +9,8 @@ const PATH_COLOR := Color(0.862745, 0.25098, 0.25098, 0.95)
 const PATH_WIDTH := 3.0
 const DASH_LENGTH := 9.0
 const GAP_LENGTH := 7.0
+const MENU_SCENE_PATH := "res://MenuPrincipal.tscn"
+const BATTLE_SCENE_PATH := "res://scenes/cena-batalha.tscn"
 
 @onready var progress_line: Line2D = $ProgressLine
 @onready var ship_sprite: Sprite2D = $Ship
@@ -27,29 +29,37 @@ func _ready() -> void:
 	progress_line.visible = false
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
 	_update_layout()
-	_set_stage(0, false)
-	hud_hint.text = "Mock campanha: 0=inicio | 1=IA facil | 2=IA intermediaria | 3=IA dificil | ESC=voltar"
+
+	if not CampaignState.em_campanha:
+		CampaignState.iniciar_nova_campanha()
+
+	if CampaignState.campanha_concluida:
+		_set_stage(3, false)
+		hud_hint.text = "Campanha concluida! ESC para voltar ao menu."
+		return
+
+	var completed_stages := clampi(CampaignState.vitorias, 0, 2)
+	_set_stage(completed_stages, false)
+
+	var next_stage := completed_stages + 1
+	hud_hint.text = _texto_proxima_batalha(next_stage)
+	_set_stage(next_stage, true)
+
+	if is_instance_valid(active_tween):
+		active_tween.finished.connect(_iniciar_proxima_batalha)
+	else:
+		_iniciar_proxima_batalha()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
-			KEY_0:
-				set_stage_0()
-			KEY_1:
-				set_stage_1()
-			KEY_2:
-				set_stage_2()
-			KEY_3:
-				set_stage_3()
-			KEY_ESCAPE:
-				get_tree().change_scene_to_file("res://MenuPrincipal.tscn")
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		CampaignState.encerrar_campanha()
+		get_tree().change_scene_to_file(MENU_SCENE_PATH)
 
 func _on_viewport_size_changed() -> void:
 	var previous_position := ship_sprite.global_position
 	var previous_stage := current_stage
 	_update_layout()
 
-	# Preserva o estágio atual após resize; fallback pela posição anterior.
 	if previous_stage >= 0 and previous_stage < stage_positions.size():
 		ship_sprite.global_position = stage_positions[previous_stage]
 	else:
@@ -59,10 +69,10 @@ func _update_layout() -> void:
 	var size := get_viewport_rect().size
 	var x_center := size.x * 0.52
 
-	var start := Vector2(x_center, size.y * 0.83)
-	var facil := Vector2(x_center, size.y * 0.66)
-	var intermediaria := Vector2(x_center, size.y * 0.48)
-	var dificil := Vector2(x_center, size.y * 0.30)
+	var start := Vector2(x_center, size.y * 0.90)
+	var facil := Vector2(x_center, size.y * 0.68)
+	var intermediaria := Vector2(x_center, size.y * 0.46)
+	var dificil := Vector2(x_center, size.y * 0.24)
 
 	stage_positions = [start, facil, intermediaria, dificil]
 
@@ -157,14 +167,16 @@ func _set_stage(stage: int, animate: bool) -> void:
 	else:
 		ship_sprite.global_position = target_position
 
-func set_stage_0() -> void:
-	_set_stage(0, true)
+func _iniciar_proxima_batalha() -> void:
+	get_tree().change_scene_to_file(BATTLE_SCENE_PATH)
 
-func set_stage_1() -> void:
-	_set_stage(1, true)
-
-func set_stage_2() -> void:
-	_set_stage(2, true)
-
-func set_stage_3() -> void:
-	_set_stage(3, true)
+func _texto_proxima_batalha(next_stage: int) -> String:
+	match next_stage:
+		1:
+			return "Campanha: batalha 1/3 contra IA facil"
+		2:
+			return "Campanha: batalha 2/3 contra IA intermediaria"
+		3:
+			return "Campanha: batalha 3/3 contra IA dificil"
+		_:
+			return "Campanha"
