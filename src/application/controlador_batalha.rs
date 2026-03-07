@@ -28,6 +28,7 @@ pub struct ControladorBatalha {
     gerenciador_interface: GerenciadorInterface,
     gerenciador_audio: GerenciadorAudio,
     tempo_restante_ia: f64,
+    estado_anterior: EstadoTurno,
     tooltip_instrucao: Option<Gd<Label>>,
     base: Base<Node2D>,
 }
@@ -49,6 +50,7 @@ impl INode2D for ControladorBatalha {
             gerenciador_interface: GerenciadorInterface::novo(),
             gerenciador_audio: GerenciadorAudio::novo(),
             tempo_restante_ia: 0.0,
+            estado_anterior: EstadoTurno::SelecaoDificuldade,
             tooltip_instrucao: None,
             base,
         }
@@ -111,6 +113,21 @@ impl INode2D for ControladorBatalha {
 
         // Processar delays de som
         self.gerenciador_audio.processar_delays(delta);
+
+        // Detectar fim de jogo e tocar sons apropriados
+        let estado_atual = self.gerenciador_turnos.estado_atual();
+        if estado_atual != self.estado_anterior {
+            match estado_atual {
+                EstadoTurno::VitoriaJogador => {
+                    self.gerenciador_audio.tocar_vitoria();
+                }
+                EstadoTurno::VitoriaIA => {
+                    self.gerenciador_audio.tocar_derrota();
+                }
+                _ => {}
+            }
+            self.estado_anterior = estado_atual;
+        }
 
         if self.gerenciador_turnos.estado_atual() == EstadoTurno::TurnoIA {
             self.tempo_restante_ia -= delta;
@@ -285,12 +302,12 @@ impl ControladorBatalha {
             (retorno, ia_perdeu)
         };
 
-        // Tocar disparo e agendar resultado
-        self.gerenciador_audio.tocar_disparo_com_resultado(&retorno.resultado);
-
         render_resultado_disparo(&mut enemy_map, map_coord, &retorno.resultado);
 
         if retorno.resultado.foi_valido() {
+            // Só tocar som se o disparo foi válido
+            self.gerenciador_audio.tocar_disparo_com_resultado(&retorno.resultado);
+            
             let acertou = matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_));
             let afundou = matches!(retorno.resultado, ResultadoDisparo::Afundou(_));
             

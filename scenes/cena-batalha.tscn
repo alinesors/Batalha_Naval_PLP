@@ -413,5 +413,9 @@ offset_bottom = 21.0
 
 [node name="sfx_disparo" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=705756159]
 
+[node name="sfx_som_derrota" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=1741884981]
+
+[node name="sfx_som_vitoria" type="AudioStreamPlayer" parent="ControladorBatalha/AudioManager" unique_id=1785484865]
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1329829903]
 position = Vector2(300, 200)

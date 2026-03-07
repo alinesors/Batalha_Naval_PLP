@@ -10,6 +10,8 @@ pub struct GerenciadorAudio {
     sfx_acerto: Option<Gd<AudioStreamPlayer>>,
     sfx_splash: Option<Gd<AudioStreamPlayer>>,
     sfx_destruicao: Option<Gd<AudioStreamPlayer>>,
+    sfx_vitoria: Option<Gd<AudioStreamPlayer>>,
+    sfx_derrota: Option<Gd<AudioStreamPlayer>>,
     musica_fundo_batalha: Option<Gd<AudioStreamPlayer>>,
     som_ondas: Option<Gd<AudioStreamPlayer>>,
     tempo_delay_som: f64,
@@ -23,6 +25,8 @@ impl GerenciadorAudio {
             sfx_acerto: None,
             sfx_splash: None,
             sfx_destruicao: None,
+            sfx_vitoria: None,
+            sfx_derrota: None,
             musica_fundo_batalha: None,
             som_ondas: None,
             tempo_delay_som: 0.0,
@@ -68,6 +72,25 @@ impl GerenciadorAudio {
                 sfx_destruicao.set_volume_db(0.0); // Volume máximo para impacto
             }
             self.sfx_destruicao = Some(sfx_destruicao);
+        }
+
+        // Sons de fim de jogo
+        if let Some(mut sfx_vitoria) = node.try_get_node_as::<AudioStreamPlayer>("AudioManager/sfx_som_vitoria") {
+            if let Some(resource) = resource_loader.load("res://sounds/som_vitoria.mp3") {
+                let stream = resource.cast::<AudioStream>();
+                sfx_vitoria.set_stream(&stream);
+                sfx_vitoria.set_volume_db(2.0); // Alto para celebração!
+            }
+            self.sfx_vitoria = Some(sfx_vitoria);
+        }
+
+        if let Some(mut sfx_derrota) = node.try_get_node_as::<AudioStreamPlayer>("AudioManager/sfx_som_derrota") {
+            if let Some(resource) = resource_loader.load("res://sounds/som_derrota.mp3") {
+                let stream = resource.cast::<AudioStream>();
+                sfx_derrota.set_stream(&stream);
+                sfx_derrota.set_volume_db(0.0); // Volume normal para derrota
+            }
+            self.sfx_derrota = Some(sfx_derrota);
         }
 
         // Carregar músicas de fundo
@@ -137,6 +160,19 @@ impl GerenciadorAudio {
             if !ondas.is_playing() {
                 ondas.play();
             }
+        }
+    }
+
+    // Sons de fim de jogo
+    pub fn tocar_vitoria(&mut self) {
+        if let Some(sfx) = self.sfx_vitoria.as_mut() {
+            sfx.play();
+        }
+    }
+
+    pub fn tocar_derrota(&mut self) {
+        if let Some(sfx) = self.sfx_derrota.as_mut() {
+            sfx.play();
         }
     }
 
