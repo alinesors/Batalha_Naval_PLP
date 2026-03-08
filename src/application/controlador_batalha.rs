@@ -236,6 +236,13 @@ impl ControladorBatalha {
         }
 
         self.gerenciador_turnos.forcar_vitoria_jogador();
+        self.gerenciador_audio.tocar_vitoria();
+        self.emitir_resultado_final(true);
+        self.gerenciador_interface.atualizar(
+            EstadoTurno::VitoriaJogador, 
+            self.gerenciador_turnos.rodada_atual()
+        );
+        self.estado_anterior = EstadoTurno::VitoriaJogador;
     }
 
     #[func]
@@ -245,6 +252,13 @@ impl ControladorBatalha {
         }
 
         self.gerenciador_turnos.forcar_vitoria_ia();
+        self.gerenciador_audio.tocar_derrota();
+        self.emitir_resultado_final(false);
+        self.gerenciador_interface.atualizar(
+            EstadoTurno::VitoriaIA, 
+            self.gerenciador_turnos.rodada_atual()
+        );
+        self.estado_anterior = EstadoTurno::VitoriaIA;
     }
 
     #[func]
