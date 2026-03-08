@@ -1,4 +1,5 @@
 use serde::{Serialize, Deserialize};
+use crate::domain::entidades::conquista::Conquista;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Usuario {
@@ -8,7 +9,8 @@ pub struct Usuario {
     pub senha_hash: String,
     pub jogos_totais: usize,
     pub vitorias: usize,
-    pub derrotas: usize
+    pub derrotas: usize,
+    pub conquistas: Vec<Conquista>
 }
 
 impl Usuario {
@@ -27,7 +29,8 @@ impl Usuario {
             senha_hash: senha,
             jogos_totais: 0,
             vitorias: 0,
-            derrotas: 0
+            derrotas: 0,
+            conquistas: Vec::new()
         }
     }
 
@@ -46,5 +49,11 @@ impl Usuario {
             return 0.0;
         }
         self.vitorias as f32 / self.jogos_totais as f32
+    }
+
+    pub fn adicionar_conquista(&mut self, conquista: Conquista) {
+        if !self.conquistas.contains(&conquista) {
+            self.conquistas.push(conquista)
+        }
     }
 }
