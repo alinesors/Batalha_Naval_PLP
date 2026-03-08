@@ -46,6 +46,11 @@ impl JogadorIA {
     pub fn jogador_mut(&mut self) -> &mut Jogador {
         &mut self.jogador
     }
+    
+    
+    pub fn tabuleiro(&self) -> &EstadoTabuleiro {
+        self.jogador.tabuleiro()
+    }
 
     pub fn escolher_alvo(&mut self, tabuleiro_inimigo: &EstadoTabuleiro) -> Option<(usize, usize)> {
         self.estrategia.escolher_alvo(tabuleiro_inimigo)

@@ -12,7 +12,8 @@ use crate::domain::disparo::ResultadoDisparo;
 use crate::domain::jogador::Jogador;
 use crate::domain::jogador_ia::JogadorIA;
 use crate::presentation::batalha::{
-    limpar_preview, render_preview_posicionamento, render_resultado_disparo, render_tabuleiro_jogador,
+    limpar_preview, render_preview_posicionamento, render_resultado_disparo, 
+    render_navio_afundado, render_tabuleiro_jogador,
 };
 
 const DELAY_TURNO_IA: f64 = 1.0;
@@ -400,6 +401,18 @@ impl ControladorBatalha {
         };
 
         render_resultado_disparo(&mut enemy_map, map_coord, &retorno.resultado);
+        
+        // Se um navio afundou, renderizar todas as suas células como afundadas
+        if let ResultadoDisparo::Afundou(_) = &retorno.resultado {
+            if let Some(ref ia) = self.jogador_ia {
+                // Encontrar o índice do navio que afundou
+                for (idx, navio) in ia.tabuleiro().navios.iter().enumerate() {
+                    if navio.esta_afundado() {
+                        render_navio_afundado(&mut enemy_map, ia.tabuleiro(), idx);
+                    }
+                }
+            }
+        }
 
         if retorno.resultado.foi_valido() {
             // Só tocar som se o disparo foi válido
@@ -450,6 +463,16 @@ impl ControladorBatalha {
                 Vector2i::new(y as i32, x as i32),
                 &retorno.resultado,
             );
+            
+            // Se um navio afundou, renderizar todas as suas células como afundadas
+            if let ResultadoDisparo::Afundou(_) = &retorno.resultado {
+                // Encontrar o índice do navio que afundou
+                for (idx, navio) in self.jogador_humano.tabuleiro().navios.iter().enumerate() {
+                    if navio.esta_afundado() {
+                        render_navio_afundado(&mut player_map, self.jogador_humano.tabuleiro(), idx);
+                    }
+                }
+            }
         }
 
         let acertou = matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_));
