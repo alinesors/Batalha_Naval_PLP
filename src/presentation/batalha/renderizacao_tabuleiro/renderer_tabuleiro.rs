@@ -4,7 +4,8 @@ use godot::prelude::*;
 use crate::domain::disparo::ResultadoDisparo;
 use crate::domain::tabuleiro::{Celula, EstadoTabuleiro, BOARD_SIZE};
 use crate::presentation::batalha::renderizacao_tabuleiro::atlas_tiles::{
-    ATLAS_ACERTO, ATLAS_AGUA_1, ATLAS_AGUA_2, ATLAS_AGUA_ATINGIDA,
+    ATLAS_AGUA_1, ATLAS_AGUA_2, ATLAS_AGUA_ATINGIDA, 
+    ATLAS_NAVIO_ATINGIDO, ATLAS_NAVIO_AFUNDADO,
 };
 use crate::presentation::batalha::renderizacao_tabuleiro::estilo_preview::{
     cor_preview_invalido, cor_preview_valido,
@@ -32,13 +33,42 @@ pub fn render_resultado_disparo(
                 .atlas_coords(Vector2i::new(ATLAS_AGUA_ATINGIDA.0, ATLAS_AGUA_ATINGIDA.1))
                 .done();
         }
-        ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_) => {
+        ResultadoDisparo::Acerto => {
             map.set_cell_ex(map_coord)
                 .source_id(0)
-                .atlas_coords(Vector2i::new(ATLAS_ACERTO.0, ATLAS_ACERTO.1))
+                .atlas_coords(Vector2i::new(ATLAS_NAVIO_ATINGIDO.0, ATLAS_NAVIO_ATINGIDO.1))
+                .done();
+        }
+        ResultadoDisparo::Afundou(_) => {
+            // Apenas renderiza a célula clicada
+            // render_navio_afundado() deve ser chamado depois para renderizar o navio inteiro
+            map.set_cell_ex(map_coord)
+                .source_id(0)
+                .atlas_coords(Vector2i::new(ATLAS_NAVIO_AFUNDADO.0, ATLAS_NAVIO_AFUNDADO.1))
                 .done();
         }
         ResultadoDisparo::JaDisparado | ResultadoDisparo::ForaDosLimites => {}
+    }
+}
+
+/// Renderiza todas as células de um navio afundado
+pub fn render_navio_afundado(
+    map: &mut Gd<TileMapLayer>,
+    tabuleiro: &EstadoTabuleiro,
+    navio_idx: usize,
+) {
+    for x in 0..BOARD_SIZE {
+        for y in 0..BOARD_SIZE {
+            if let Some(Celula::Afundado(idx)) = tabuleiro.valor_celula(x, y) {
+                if idx == navio_idx {
+                    let map_coord = Vector2i::new(y as i32, x as i32);
+                    map.set_cell_ex(map_coord)
+                        .source_id(0)
+                        .atlas_coords(Vector2i::new(ATLAS_NAVIO_AFUNDADO.0, ATLAS_NAVIO_AFUNDADO.1))
+                        .done();
+                }
+            }
+        }
     }
 }
 
@@ -59,17 +89,22 @@ pub fn render_tabuleiro_jogador(map: &mut Gd<TileMapLayer>, tabuleiro: &EstadoTa
                             .atlas_coords(Vector2i::new(atlas_navio.0, atlas_navio.1))
                             .done();
                     }
-                    Celula::Agua => {
-                        let sprite_agua = obter_sprite_agua(x, y);
+                    Celula::AguaAtirada => {
                         map.set_cell_ex(map_coord)
                             .source_id(0)
-                            .atlas_coords(Vector2i::new(sprite_agua.0, sprite_agua.1))
+                            .atlas_coords(Vector2i::new(ATLAS_AGUA_ATINGIDA.0, ATLAS_AGUA_ATINGIDA.1))
                             .done();
                     }
                     Celula::Atingido(_) => {
                         map.set_cell_ex(map_coord)
                             .source_id(0)
-                            .atlas_coords(Vector2i::new(ATLAS_ACERTO.0, ATLAS_ACERTO.1))
+                            .atlas_coords(Vector2i::new(ATLAS_NAVIO_ATINGIDO.0, ATLAS_NAVIO_ATINGIDO.1))
+                            .done();
+                    }
+                    Celula::Afundado(_) => {
+                        map.set_cell_ex(map_coord)
+                            .source_id(0)
+                            .atlas_coords(Vector2i::new(ATLAS_NAVIO_AFUNDADO.0, ATLAS_NAVIO_AFUNDADO.1))
                             .done();
                     }
                     Celula::Vazio => {

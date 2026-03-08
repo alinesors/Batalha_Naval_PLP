@@ -38,10 +38,11 @@ impl Navio {
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Celula {
-    Vazio,
-    Ocupado(usize),
-    Agua,
-    Atingido(usize),
+    Vazio,          // Célula vazia (água sem tiro)
+    AguaAtirada,    // Água com tiro (erro)
+    Ocupado(usize), // Navio intacto
+    Atingido(usize),// Navio parcialmente atingido
+    Afundado(usize),// Navio completamente destruído
 }
 
 pub struct EstadoTabuleiro {
@@ -65,6 +66,19 @@ impl EstadoTabuleiro {
     pub fn definir_celula(&mut self, x: usize, y: usize, valor: Celula) {
         if x < BOARD_SIZE && y < BOARD_SIZE {
             self.cells[x][y] = valor;
+        }
+    }
+
+    /// Transforma todas as células Atingido(idx) em Afundado(idx) quando um navio afunda
+    pub fn afundar_navio(&mut self, navio_idx: usize) {
+        for x in 0..BOARD_SIZE {
+            for y in 0..BOARD_SIZE {
+                if let Celula::Atingido(idx) = self.cells[x][y] {
+                    if idx == navio_idx {
+                        self.cells[x][y] = Celula::Afundado(navio_idx);
+                    }
+                }
+            }
         }
     }
 
@@ -127,7 +141,7 @@ impl EstadoTabuleiro {
     pub fn remover_navio_na_posicao(&mut self, x: usize, y: usize) -> Option<String> {
         // Verificar se há um navio nesta posição
         let navio_idx = match self.cells[x][y] {
-            Celula::Ocupado(idx) | Celula::Atingido(idx) => Some(idx),
+            Celula::Ocupado(idx) | Celula::Atingido(idx) | Celula::Afundado(idx) => Some(idx),
             _ => None,
         }?;
         
@@ -137,7 +151,8 @@ impl EstadoTabuleiro {
         for x in 0..BOARD_SIZE {
             for y in 0..BOARD_SIZE {
                 match self.cells[x][y] {
-                    Celula::Ocupado(navio_id) | Celula::Atingido(navio_id) if navio_id == navio_idx => {
+                    Celula::Ocupado(navio_id) | Celula::Atingido(navio_id) | Celula::Afundado(navio_id) 
+                        if navio_id == navio_idx => {
                         self.cells[x][y] = Celula::Vazio;
                     }
                     _ => {}
@@ -157,6 +172,9 @@ impl EstadoTabuleiro {
                     }
                     Celula::Atingido(navio_id) if navio_id > navio_idx => {
                         self.cells[x][y] = Celula::Atingido(navio_id - 1);
+                    }
+                    Celula::Afundado(navio_id) if navio_id > navio_idx => {
+                        self.cells[x][y] = Celula::Afundado(navio_id - 1);
                     }
                     _ => {}
                 }

@@ -431,18 +431,6 @@ offset_bottom = 21.0
 offset_right = 40.0
 offset_bottom = 21.0
 
-[node name="BotaoFacil" type="Button" parent="ControladorBatalha" unique_id=220736241]
-offset_right = 8.0
-offset_bottom = 8.0
-
-[node name="BotaoMedio" type="Button" parent="ControladorBatalha" unique_id=1791210327]
-offset_right = 8.0
-offset_bottom = 8.0
-
-[node name="BotaoDificil" type="Button" parent="ControladorBatalha" unique_id=240135036]
-offset_right = 8.0
-offset_bottom = 8.0
-
 [node name="BotaoVitoriaTeste" type="Button" parent="ControladorBatalha"]
 offset_left = 446.0
 offset_top = 12.0
@@ -468,9 +456,6 @@ offset_bottom = 40.0
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1329829903]
 position = Vector2(300, 200)
 
-[connection signal="pressed" from="ControladorBatalha/BotaoFacil" to="ControladorBatalha" method="selecionar_dificuldade_facil"]
-[connection signal="pressed" from="ControladorBatalha/BotaoMedio" to="ControladorBatalha" method="selecionar_dificuldade_media"]
-[connection signal="pressed" from="ControladorBatalha/BotaoDificil" to="ControladorBatalha" method="selecionar_dificuldade_dificil"]
 [connection signal="pressed" from="ControladorBatalha/BotaoVitoriaTeste" to="ControladorBatalha" method="vencer_teste"]
 [connection signal="pressed" from="ControladorBatalha/BotaoDerrotaTeste" to="ControladorBatalha" method="perder_teste"]
 [connection signal="pressed" from="ControladorBatalha/BotaoConfirmarPosicionamento" to="ControladorBatalha" method="confirmar_posicionamento"]

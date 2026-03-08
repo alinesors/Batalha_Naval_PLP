@@ -33,7 +33,7 @@ pub fn executar_disparo(tabuleiro: &mut EstadoTabuleiro, x: usize, y: usize) -> 
 
     match celula_atual {
         Celula::Vazio => {
-            tabuleiro.definir_celula(x, y, Celula::Agua);
+            tabuleiro.definir_celula(x, y, Celula::AguaAtirada);
             RetornoDisparo {
                 resultado: ResultadoDisparo::Agua,
                 mensagem: format!("Água em [{}, {}]!", x, y),
@@ -46,6 +46,8 @@ pub fn executar_disparo(tabuleiro: &mut EstadoTabuleiro, x: usize, y: usize) -> 
 
             if navio.esta_afundado() {
                 let nome = navio.nome.clone();
+                // Transformar todas células Atingido deste navio em Afundado
+                tabuleiro.afundar_navio(idx);
                 RetornoDisparo {
                     resultado: ResultadoDisparo::Afundou(nome.clone()),
                     mensagem: format!("KABOOM! O {} afundou!", nome),
@@ -57,7 +59,7 @@ pub fn executar_disparo(tabuleiro: &mut EstadoTabuleiro, x: usize, y: usize) -> 
                 }
             }
         }
-        Celula::Agua | Celula::Atingido(_) => {
+        Celula::AguaAtirada | Celula::Atingido(_) | Celula::Afundado(_) => {
             RetornoDisparo {
                 resultado: ResultadoDisparo::JaDisparado,
                 mensagem: "Você já atirou aqui!".to_string(),
