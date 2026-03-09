@@ -34,7 +34,10 @@ pub struct ControladorBatalha {
     tooltip_instrucao: Option<Gd<Label>>,
     botao_xray: Option<Gd<Button>>,
     mapa_xray_ia: Option<Gd<TileMapLayer>>,
+    mapa_xray_ia_navios: Option<Gd<TileMapLayer>>,
     label_xray_ia: Option<Gd<Label>>,
+    mapa_navios_jogador: Option<Gd<TileMapLayer>>,
+    mapa_navios_ia: Option<Gd<TileMapLayer>>,
     xray_ativo: bool,
     modo_dinamico: bool,
     navio_selecionado_movimento: Option<usize>,
@@ -67,7 +70,10 @@ impl INode2D for ControladorBatalha {
             tooltip_instrucao: None,
             botao_xray: None,
             mapa_xray_ia: None,
+            mapa_xray_ia_navios: None,
             label_xray_ia: None,
+            mapa_navios_jogador: None,
+            mapa_navios_ia: None,
             xray_ativo: false,
             modo_dinamico: false,
             navio_selecionado_movimento: None,
@@ -92,7 +98,8 @@ impl INode2D for ControladorBatalha {
         self.botao_xray = self.base().try_get_node_as::<Button>("BotaoXRay");
         self.atualizar_texto_botao_xray();
         self.inicializar_xray_ia();
-        
+        self.inicializar_ship_layers();
+
         // Inicializar áudio com o nó base
         let node = self.base().clone().upcast::<Node>();
         self.gerenciador_audio.inicializar(&node);
@@ -344,6 +351,7 @@ impl ControladorBatalha {
         self.atualizar_texto_botao_xray();
         self.atualizar_xray_ia();
     }
+    #[func]
     pub fn selecionar_navio_do_container(&mut self, indice: i32) {
         if indice < 0 {
             return;
@@ -366,11 +374,22 @@ impl ControladorBatalha {
         mapa.set_name("CampoIAXRay");
         mapa.set_z_index(120);
         mapa.set_scale(Vector2::new(0.55, 0.55));
-        if let Some(ts) = tile_set {
+        if let Some(ts) = tile_set.clone() {
             mapa.set_tile_set(&ts);
         }
         self.base_mut().add_child(&mapa.clone().upcast::<Node>());
         self.mapa_xray_ia = Some(mapa);
+
+        // Ship layer do xray — fica acima do board xray
+        let mut mapa_navios = TileMapLayer::new_alloc();
+        mapa_navios.set_name("CampoIAXRayNavios");
+        mapa_navios.set_z_index(121);
+        mapa_navios.set_scale(Vector2::new(0.55, 0.55));
+        if let Some(ts) = tile_set {
+            mapa_navios.set_tile_set(&ts);
+        }
+        self.base_mut().add_child(&mapa_navios.clone().upcast::<Node>());
+        self.mapa_xray_ia_navios = Some(mapa_navios);
 
         let mut label = Label::new_alloc();
         label.set_name("LabelXRayIA");
@@ -379,9 +398,47 @@ impl ControladorBatalha {
         label.add_theme_color_override("font_color", Color::from_rgb(1.0, 0.92, 0.25));
         label.add_theme_color_override("font_outline_color", Color::from_rgb(0.0, 0.0, 0.0));
         label.add_theme_constant_override("outline_size", 2);
-        label.set_z_index(121);
+        label.set_z_index(122);
         self.base_mut().add_child(&label.clone().upcast::<Node>());
         self.label_xray_ia = Some(label);
+    }
+
+    fn inicializar_ship_layers(&mut self) {
+        if let Some(campo_jogador) = self.base().try_get_node_as::<TileMapLayer>("CampoJogador") {
+            let tile_set = campo_jogador.get_tile_set();
+            let z = campo_jogador.get_z_index();
+            let pos = campo_jogador.get_position();
+            let scale = campo_jogador.get_scale();
+
+            let mut mapa = TileMapLayer::new_alloc();
+            mapa.set_name("NaviosJogador");
+            mapa.set_z_index(z + 1);
+            mapa.set_position(pos);
+            mapa.set_scale(scale);
+            if let Some(ts) = tile_set {
+                mapa.set_tile_set(&ts);
+            }
+            self.base_mut().add_child(&mapa.clone().upcast::<Node>());
+            self.mapa_navios_jogador = Some(mapa);
+        }
+
+        if let Some(campo_ia) = self.base().try_get_node_as::<TileMapLayer>("CampoIA") {
+            let tile_set = campo_ia.get_tile_set();
+            let z = campo_ia.get_z_index();
+            let pos = campo_ia.get_position();
+            let scale = campo_ia.get_scale();
+
+            let mut mapa = TileMapLayer::new_alloc();
+            mapa.set_name("NaviosIA");
+            mapa.set_z_index(z + 1);
+            mapa.set_position(pos);
+            mapa.set_scale(scale);
+            if let Some(ts) = tile_set {
+                mapa.set_tile_set(&ts);
+            }
+            self.base_mut().add_child(&mapa.clone().upcast::<Node>());
+            self.mapa_navios_ia = Some(mapa);
+        }
     }
 
     fn atualizar_texto_botao_xray(&mut self) {
@@ -414,6 +471,9 @@ impl ControladorBatalha {
         if let Some(ref mut label) = self.label_xray_ia {
             label.set_visible(mostrar);
         }
+        if let Some(ref mut ship_xray) = self.mapa_xray_ia_navios {
+            ship_xray.set_visible(mostrar);
+        }
         if !mostrar {
             return;
         }
@@ -426,7 +486,11 @@ impl ControladorBatalha {
         let Some(ref ia) = self.jogador_ia else {
             return;
         };
-        render_tabuleiro_jogador(mapa_xray, ia.tabuleiro());
+        if let Some(ref mut ship_xray) = self.mapa_xray_ia_navios {
+            ship_xray.set_visible(true);
+            ship_xray.set_position(Vector2::new(pos_x, pos_y));
+            render_tabuleiro_jogador(mapa_xray, ship_xray, ia.tabuleiro());
+        }
     }
 
     fn emitir_resultado_final(&mut self, vitoria: bool) {
@@ -445,10 +509,9 @@ impl ControladorBatalha {
             return;
         };
 
-        use godot::classes::{AtlasTexture, Button, FontFile, HBoxContainer as GdHBoxContainer, 
-                             ResourceLoader, Texture2D, TextureRect, VBoxContainer};
-        use godot::classes::box_container::AlignmentMode;
-        
+        use godot::classes::{AtlasTexture, Button, Control, FontFile,
+                             ResourceLoader, Sprite2D, Texture2D, VBoxContainer};
+
         // Limpar container primeiro
         for mut child in container.get_children().iter_shared() {
             child.queue_free();
@@ -456,46 +519,65 @@ impl ControladorBatalha {
 
         let fila_navios = self.fase_posicionamento.obter_fila_navios();
         godot_print!("Popular container com {} navios", fila_navios.len());
-        
-        // Carregar recursos
+
         let mut resource_loader = ResourceLoader::singleton();
         let font = resource_loader
             .load("res://fonts/Retro Gaming.ttf")
             .and_then(|res| res.try_cast::<FontFile>().ok());
-        
+
+        // Sprite-sheet de navios (3 colunas × 14 linhas, tiles 16×16).
         let textura_navios = resource_loader
-            .load("res://textures/Water+.png")
+            .load("res://textures/ships.png")
             .and_then(|res| res.try_cast::<Texture2D>().ok());
 
+        let base_row = |tam: usize| -> f32 {
+            match tam { 1 => 0.0, 3 => 1.0, 4 => 4.0, 6 => 8.0, _ => 0.0 }
+        };
+
+        // Tamanho do tile exibido no container (px)
+        const TILE: f32 = 12.0;
+
         for (idx, (nome, tamanho)) in fila_navios.iter().enumerate() {
-            // Container vertical para cada navio (sprites + botão)
+            let tam = *tamanho;
+            let ship_w = tam as f32 * TILE;
+
             let mut vbox = VBoxContainer::new_alloc();
-            vbox.set_custom_minimum_size(Vector2::new((*tamanho as f32) * 12.0 + 8.0, 40.0));
-            
-            // Container horizontal para os sprites
-            let mut hbox_sprites = GdHBoxContainer::new_alloc();
-            hbox_sprites.set_alignment(AlignmentMode::CENTER); // Centralizado
-            hbox_sprites.add_theme_constant_override("separation", 1);
-            
-            // Criar sprites do navio (repetir o sprite N vezes baseado no tamanho)
+            vbox.set_custom_minimum_size(Vector2::new(ship_w + 8.0, 40.0));
+
+            let mut canvas = Control::new_alloc();
+            canvas.set_custom_minimum_size(Vector2::new(ship_w, TILE));
+
             if let Some(ref textura) = textura_navios {
-                for _ in 0..*tamanho {
+                let row_base = base_row(tam);
+                for seg in 0..tam {
                     let mut atlas = AtlasTexture::new_gd();
                     atlas.set_atlas(textura);
-                    // Sprite do navio em (8, 7) no atlas - cada tile é 16x16
-                    atlas.set_region(Rect2::new(Vector2::new(8.0 * 16.0, 7.0 * 16.0), Vector2::new(16.0, 16.0)));
-                    
-                    let mut sprite_rect = TextureRect::new_alloc();
-                    sprite_rect.set_texture(&atlas.upcast::<Texture2D>());
-                    sprite_rect.set_custom_minimum_size(Vector2::new(12.0, 12.0));
-                    sprite_rect.set_expand_mode(godot::classes::texture_rect::ExpandMode::IGNORE_SIZE);
-                    sprite_rect.set_stretch_mode(godot::classes::texture_rect::StretchMode::KEEP);
-                    
-                    hbox_sprites.add_child(&sprite_rect);
+                    let row = row_base + seg as f32;
+                    atlas.set_region(Rect2::new(
+                        Vector2::new(0.0, row * 16.0),
+                        Vector2::new(16.0, 16.0),
+                    ));
+
+                    let mut sprite = Sprite2D::new_alloc();
+                    sprite.set_texture(&atlas.upcast::<Texture2D>());
+                    // Escalar de 16px para TILE px
+                    let escala = TILE / 16.0;
+                    sprite.set_scale(Vector2::new(escala, escala));
+                    // Centralizar
+                    sprite.set_position(Vector2::new(
+                        seg as f32 * TILE + TILE / 2.0,
+                        TILE / 2.0,
+                    ));
+                    // Girar
+                    if tam > 1 {
+                        sprite.set_rotation_degrees(-90.0);
+                    }
+
+                    canvas.add_child(&sprite.upcast::<godot::classes::Node>());
                 }
             }
-            
-            vbox.add_child(&hbox_sprites);
+
+            vbox.add_child(&canvas.upcast::<godot::classes::Node>());
             
             // Botão clicável embaixo dos sprites
             let mut botao = Button::new_alloc();
@@ -680,13 +762,14 @@ impl ControladorBatalha {
             self.tiros_jogador_no_tabuleiro_ia[x][y] = true;
         }
 
-        // Se um navio afundou, renderizar todas as suas células como afundadas
+        // Se um navio afundou, revelar sprites no ship layer da IA
         if let ResultadoDisparo::Afundou(_) = &retorno.resultado {
             if let Some(ref ia) = self.jogador_ia {
-                // Encontrar o índice do navio que afundou
-                for (idx, navio) in ia.tabuleiro().navios.iter().enumerate() {
-                    if navio.esta_afundado() {
-                        render_navio_afundado(&mut enemy_map, ia.tabuleiro(), idx);
+                if let Some(ref mut ship_ia) = self.mapa_navios_ia {
+                    for (idx, navio) in ia.tabuleiro().navios.iter().enumerate() {
+                        if navio.esta_afundado() {
+                            render_navio_afundado(ship_ia, ia.tabuleiro(), idx);
+                        }
                     }
                 }
             }
@@ -743,25 +826,22 @@ impl ControladorBatalha {
             ia.notificar_resultado(x, y, &retorno);
         }
 
-        if let Some(mut player_map) = self.base().try_get_node_as::<TileMapLayer>("CampoJogador") {
-            render_resultado_disparo(
-                &mut player_map,
-                Vector2i::new(y as i32, x as i32),
-                &retorno.resultado,
-            );
-            if retorno.resultado.foi_valido() {
-                self.tiros_ia_no_tabuleiro_jogador[x][y] = true;
+        if retorno.resultado.foi_valido() {
+            self.tiros_ia_no_tabuleiro_jogador[x][y] = true;
+        }
+
+        if matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_)) {
+            if let Some(player_map) = self.base().try_get_node_as::<TileMapLayer>("CampoJogador") {
+                let map_coord = Vector2i::new(y as i32, x as i32);
             }
-            
-            // Se um navio afundou, renderizar todas as suas células como afundadas
-            if let ResultadoDisparo::Afundou(_) = &retorno.resultado {
-                // Encontrar o índice do navio que afundou
-                for (idx, navio) in self.jogador_humano.tabuleiro().navios.iter().enumerate() {
-                    if navio.esta_afundado() {
-                        render_navio_afundado(&mut player_map, self.jogador_humano.tabuleiro(), idx);
-                    }
-                }
-            }
+        }
+
+        // Redesenha o tabuleiro do jogador com board_map + ship_map separados.
+        if let (Some(mut board_map), Some(mut ship_map)) = (
+            self.base().try_get_node_as::<TileMapLayer>("CampoJogador"),
+            self.mapa_navios_jogador.clone(),
+        ) {
+            render_tabuleiro_jogador(&mut board_map, &mut ship_map, self.jogador_humano.tabuleiro());
         }
 
         let acertou = matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_));
@@ -977,8 +1057,11 @@ impl ControladorBatalha {
     }
 
     fn atualizar_visual_meu_campo(&mut self) {
-        if let Some(mut player_map) = self.base().try_get_node_as::<TileMapLayer>("CampoJogador") {
-            render_tabuleiro_jogador(&mut player_map, self.jogador_humano.tabuleiro());
+        if let (Some(mut board_map), Some(mut ship_map)) = (
+            self.base().try_get_node_as::<TileMapLayer>("CampoJogador"),
+            self.mapa_navios_jogador.clone(),
+        ) {
+            render_tabuleiro_jogador(&mut board_map, &mut ship_map, self.jogador_humano.tabuleiro());
         }
     }
 }

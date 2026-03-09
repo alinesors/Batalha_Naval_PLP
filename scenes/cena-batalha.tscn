@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://da0oa8j1ekbpm" path="res://scenes/cena_batalha.gd" id="1_2h13w"]
 [ext_resource type="Texture2D" uid="uid://gmam350tbtik" path="res://textures/Water+.png" id="1_6klpq"]
 [ext_resource type="Texture2D" uid="uid://cwqcuqlumtydj" path="res://textures/bordas.png" id="2_2jp3k"]
+[ext_resource type="Texture2D" uid="uid://g0dkgkjyvfl" path="res://textures/ships.png" id="3_8pi0p"]
 [ext_resource type="Texture2D" uid="uid://cqlq0gpfenhvv" path="res://textures/marcador.png" id="3_mt5k5"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_115gp"]
@@ -332,6 +333,51 @@ texture = ExtResource("1_6klpq")
 1:13/0 = 0
 2:13/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_2ekb4"]
+texture = ExtResource("3_8pi0p")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+0:6/0 = 0
+1:6/0 = 0
+2:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+0:8/0 = 0
+1:8/0 = 0
+2:8/0 = 0
+0:9/0 = 0
+1:9/0 = 0
+2:9/0 = 0
+0:10/0 = 0
+1:10/0 = 0
+2:10/0 = 0
+0:11/0 = 0
+1:11/0 = 0
+2:11/0 = 0
+0:12/0 = 0
+1:12/0 = 0
+2:12/0 = 0
+0:13/0 = 0
+1:13/0 = 0
+2:13/0 = 0
+
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_8pi0p"]
 texture = ExtResource("2_2jp3k")
 0:0/0 = 0
@@ -352,6 +398,7 @@ texture = ExtResource("3_mt5k5")
 sources/0 = SubResource("TileSetAtlasSource_2gn51")
 sources/2 = SubResource("TileSetAtlasSource_8pi0p")
 sources/3 = SubResource("TileSetAtlasSource_naiih")
+sources/1 = SubResource("TileSetAtlasSource_2ekb4")
 
 [node name="Batalha" type="Node2D" unique_id=1451474705]
 script = ExtResource("1_2h13w")
@@ -367,9 +414,9 @@ tile_set = SubResource("TileSet_fw6bw")
 
 [node name="ControladorBatalha" type="ControladorBatalha" parent="." unique_id=200106303]
 
-[node name="UILayer" type="CanvasLayer" parent="ControladorBatalha"]
+[node name="UILayer" type="CanvasLayer" parent="ControladorBatalha" unique_id=334519515]
 
-[node name="ContainerNavios" type="GridContainer" parent="ControladorBatalha/UILayer"]
+[node name="ContainerNavios" type="GridContainer" parent="ControladorBatalha/UILayer" unique_id=1983284693]
 
 [node name="AudioManager" type="Node2D" parent="ControladorBatalha" unique_id=453797652]
 
@@ -446,11 +493,11 @@ offset_bottom = 386.0
 text = "Perder (Teste)"
 
 [node name="BotaoXRay" type="Button" parent="ControladorBatalha" unique_id=178916245]
+visible = false
 offset_left = 446.0
 offset_top = 80.0
 offset_right = 592.0
 offset_bottom = 110.0
-visible = false
 text = "X-Ray: OFF"
 
 [node name="BotaoConfirmarPosicionamento" type="Button" parent="ControladorBatalha" unique_id=2037498854]
