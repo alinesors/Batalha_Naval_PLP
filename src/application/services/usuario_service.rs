@@ -126,6 +126,38 @@ impl<R: RepositorioUsuario> UsuarioService<R> {
 
         Ok(ConquistaService.listar_conquistas(&usuario).clone())
     }
+
+    pub fn registrar_vitoria(&mut self, login: &str) -> Result<(), String> {
+        let mut usuario = self.repo
+            .achar_por_login(login)
+            .ok_or("Usuário não encontrado".to_string())?;
+
+        usuario.registrar_vitoria();
+        self.repo.atualizar(usuario)
+    }
+
+    pub fn registrar_derrota(&mut self, login: &str) -> Result<(), String> {
+        let mut usuario = self.repo
+            .achar_por_login(login)
+            .ok_or("Usuário não encontrado".to_string())?;
+
+        usuario.registrar_derrota();
+        self.repo.atualizar(usuario)
+    }
+
+    pub fn obter_estatisticas(&self, login: &str) -> Result<(usize, usize, usize, f32), String> {
+        let mut usuario = self.repo
+            .achar_por_login(login)
+            .ok_or("Usuário não encontrado".to_string())?;
+
+        Ok((
+            usuario.jogos_totais,
+            usuario.vitorias,
+            usuario.derrotas,
+            usuario.taxa_de_vitoria()
+        ))
+    }
+
 }
 
 

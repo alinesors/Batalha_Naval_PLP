@@ -124,4 +124,33 @@ impl UsuarioNode {
             Err(_) => PackedStringArray::new()
         }
     }
+
+    #[func]
+    pub fn registrar_vitoria(&mut self, login: GString) -> bool {
+        self.service
+            .registrar_vitoria(&login.to_string())
+            .is_ok()
+    }
+
+    #[func]
+    pub fn registrar_derrota(&mut self, login: GString) -> bool {
+        self.service
+            .registrar_derrota(&login.to_string())
+            .is_ok()
+    }
+
+    #[func]
+    pub fn obter_estatisticas(&self, login: GString) -> Dictionary<GString, Variant> {
+        match self.service.obter_estatisticas(&login.to_string()) {
+            Ok((jogos_totais, vitorias, derrotas, taxa)) => {
+                let mut dict = Dictionary::new();
+                dict.set("jogos_totais", jogos_totais as i64);
+                dict.set("vitorias", vitorias as i64);
+                dict.set("derrotas", derrotas as i64);
+                dict.set("taxa_de_vitoria", taxa as f64);
+                dict
+            },
+            Err(_) => Dictionary::new()
+        }
+    }
 }
