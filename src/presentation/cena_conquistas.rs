@@ -84,7 +84,7 @@ impl CenaConquistas {
         let todas_conquistas = vec![
             ("Almirante", "Vencer sem perder navios"),
             ("Capitao", "Acertar 7 tiros seguidos"),
-            ("Capitao De Mar E Guerra", "Acertar 8 tiros seguidos"),
+            ("CapitaoDeMarEGuerra", "Acertar 8 tiros seguidos"),
             ("Marinheiro", "Vencer em 20 rodadas ou menos"),
         ];
 

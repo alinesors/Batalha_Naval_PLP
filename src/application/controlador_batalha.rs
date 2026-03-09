@@ -77,8 +77,8 @@ impl INode2D for ControladorBatalha {
             label_xray_ia: None,
             mapa_navios_jogador: None,
             mapa_navios_ia: None,
-            xray_ativo: false,
-            modo_dinamico: false,
+            xray_ativo: true,
+            modo_dinamico: true,
             navio_selecionado_movimento: None,
             movimento_jogador_realizado: false,
             tiros_jogador_no_tabuleiro_ia: [[false; BOARD_SIZE]; BOARD_SIZE],
@@ -767,22 +767,12 @@ impl ControladorBatalha {
     }
 
     fn tratar_clique_disparo_jogador(&mut self, click_pos: Vector2) {
-        let Some(mut enemy_map) = self.base().try_get_node_as::<TileMapLayer>("CampoIA") else {
-            return;
-        };
-
-        let Some((x, y, map_coord)) =
-            conversao_coordenadas::clique_para_coordenada(enemy_map.clone(), click_pos)
-        else {
-            return;
-        };
+        let Some(mut enemy_map) = self.base().try_get_node_as::<TileMapLayer>("CampoIA") else { return; };
+        let Some((x, y, map_coord)) = conversao_coordenadas::clique_para_coordenada(enemy_map.clone(), click_pos) else { return; };
 
         let (retorno, ia_perdeu) = {
-            let Some(ref mut ia) = self.jogador_ia else {
-                return;
-            };
+            let Some(ref mut ia) = self.jogador_ia else { return; };
             let retorno = ia.receber_disparo(x, y);
-            godot_print!("{}", retorno.mensagem);
             let ia_perdeu = ia.perdeu();
             (retorno, ia_perdeu)
         };
@@ -792,33 +782,30 @@ impl ControladorBatalha {
         if retorno.resultado.foi_valido() {
             self.tiros_jogador_no_tabuleiro_ia[x][y] = true;
 
-            // --- CONTABILIZADOR DE ACERTOS SEGUIDOS ---
             let acertou = matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_));
             if acertou {
                 self.acertos_seguidos_atual += 1;
                 if self.acertos_seguidos_atual > self.max_acertos_seguidos {
                     self.max_acertos_seguidos = self.acertos_seguidos_atual;
                 }
+                godot_print!("COMBO: {} acertos seguidos!", self.acertos_seguidos_atual);
             } else {
-                self.acertos_seguidos_atual = 0; // Errou, zera a contagem
+                self.acertos_seguidos_atual = 0;
+                godot_print!("COMBO QUEBRADO!");
             }
         }
 
-        // Efeito de fumaça ao acertar
         if matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_)) {
             let pos_global = posicao_global_tile(&enemy_map, map_coord);
             let pai = self.base().clone();
             self.gerenciador_efeito.disparar_fumaca(pai, pos_global);
         }
 
-        // Se um navio afundou, revelar sprites no ship layer da IA
         if let ResultadoDisparo::Afundou(_) = &retorno.resultado {
             if let Some(ref ia) = self.jogador_ia {
                 if let Some(ref mut ship_ia) = self.mapa_navios_ia {
                     for (idx, navio) in ia.tabuleiro().navios.iter().enumerate() {
-                        if navio.esta_afundado() {
-                            render_navio_afundado(ship_ia, ia.tabuleiro(), idx);
-                        }
+                        if navio.esta_afundado() { render_navio_afundado(ship_ia, ia.tabuleiro(), idx); }
                     }
                 }
             }
@@ -826,23 +813,14 @@ impl ControladorBatalha {
 
         if retorno.resultado.foi_valido() {
             self.gerenciador_audio.tocar_disparo_com_resultado(&retorno.resultado);
-
             let acertou = matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_));
             let afundou = matches!(retorno.resultado, ResultadoDisparo::Afundou(_));
-
             self.gerenciador_turnos.processar_ataque_jogador(acertou, afundou);
-
-            if ia_perdeu {
-                return;
-            }
-
+            if ia_perdeu { return; }
             self.movimento_jogador_realizado = false;
             self.navio_selecionado_movimento = None;
             self.limpar_preview_posicionamento();
-
-            if !acertou && !self.gerenciador_turnos.jogo_terminou() {
-                self.tempo_restante_ia = DELAY_TURNO_IA;
-            }
+            if !acertou && !self.gerenciador_turnos.jogo_terminou() { self.tempo_restante_ia = DELAY_TURNO_IA; }
         }
     }
 

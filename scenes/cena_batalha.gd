@@ -59,7 +59,7 @@ func _on_batalha_encerrada(vitoria: bool) -> void:
 				usuario_node.adicionar_conquista(login_atual, "Capitao")
 
 			if max_acertos >= 8:
-				usuario_node.adicionar_conquista(login_atual, "CapitaoDeMarEGuerra")
+				usuario_node.adicionar_conquista(login_atual, "Capitao De Mar E Guerra")
 
 			var perdeu_navio = controlador.call("jogador_perdeu_algum_navio")
 			if not perdeu_navio:
