@@ -24,7 +24,7 @@ UsuarioLogadoOverlay="*res://usuario_logado_overlay.gd"
 
 window/size/viewport_width=600
 window/size/viewport_height=400
-window/size/mode=1
+window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [gui]
