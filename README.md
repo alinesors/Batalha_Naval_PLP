@@ -1,9 +1,10 @@
 <a id="topo"></a>
+
 <p align="center">
-  <img src="ship-game.gif" alt="Gameplay Batalha Naval" width="100%" height="500" />
+  <img src="header-project-rust.png" alt="Gameplay Batalha Naval"/>
 </p>
 
-# 🏆 Batalha Naval (Godot + Rust)
+<h1 align="center">Rustland Sea Raiders (Rust + Godot)</h1>
 
 <div align="center">
 
@@ -12,13 +13,167 @@
 
 Projeto acadêmico desenvolvido para a disciplina de **Paradigmas de Linguagens de Programação**.
 
-
 </div>
+
+<p align="center">
+  Jogo inspirado em Batalha Naval com interface em Godot e regras de domínio em Rust via GDExtension.
+</p>
+
+---
+
+## Índice
+
+- [Visão Geral](#visao-geral)
+- [Destaques](#destaques)
+- [Preview](#preview)
+- [Tecnologias](#tecnologias)
+- [Arquitetura e Regras de Negócio](#arquitetura-e-regras-de-negocio)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Como Executar](#como-executar)
+- [FAQ](#faq)
+- [Integrantes](#integrantes)
+- [Contato](#contato)
+
+<a id="visao-geral"></a>
+## Visão Geral
+
+`Rustland Sea Raiders` é um jogo inspirado em Batalha Naval, com interface em Godot e regras principais implementadas em Rust via GDExtension.
+
+<a id="destaques"></a>
+## Destaques
+
+- Regras de jogo isoladas na camada de domínio (`src/domain/`)
+- Integração Rust + Godot com GDExtension
+- Organização modular por responsabilidades
+- Fluxo de partida separado por fases e gerenciadores
+
+## Preview
+
+![Preview do jogo](ship-game.gif)
+
+<a id="tecnologias"></a>
+## Tecnologias
+
+- Godot Engine 4.x
+- Rust (toolchain estável)
+- Cargo
+- GDExtension
+
+<a id="arquitetura-e-regras-de-negocio"></a>
+## Arquitetura e Regras de Negócio
+
+As regras da partida estão concentradas na camada de domínio, incluindo:
+
+- Validação de jogadas
+- Resolução de disparos (`acerto`, `água` e repetição)
+- Atualização de estado do tabuleiro
+- Retorno de mensagens para feedback ao jogador
+
+Arquivos centrais da lógica:
+
+- `src/domain/disparo.rs`
+- `src/domain/tabuleiro.rs`
+- `src/domain/jogador.rs`
+- `src/domain/jogador_ia.rs`
+
+<a id="estrutura-do-projeto"></a>
+## Estrutura do Projeto
+
+```text
+src/
+|-- lib.rs
+|-- application/
+|   |-- controlador_batalha.rs
+|   |-- fase_posicionamento.rs
+|   |-- fase_selecao_dificuldade.rs
+|   |-- gerenciador_audio.rs
+|   |-- gerenciador_efeito.rs
+|   |-- gerenciador_interface.rs
+|   |-- gerenciador_turnos.rs
+|   |-- helpers/
+|   |-- nodes/
+|   |-- services/
+|   `-- mod.rs
+|-- domain/
+|   |-- disparo.rs
+|   |-- jogador.rs
+|   |-- jogador_ia.rs
+|   |-- tabuleiro.rs
+|   |-- entidades/
+|   |-- estrategias_ia/
+|   |-- repositorios/
+|   `-- mod.rs
+|-- infrastructure/
+|   |-- repositorio_usuario_json.rs
+|   `-- mod.rs
+`-- presentation/
+    |-- batalha/
+    |-- cena_fim_de_jogo.rs
+    |-- cena_ranking.rs
+    `-- mod.rs
+```
+
+Responsabilidades por camada:
+
+- `src/lib.rs`: ponto de entrada da extensão Rust e registro com `#[gdextension]`
+- `src/application/`: coordenação do fluxo de jogo e orquestração entre domínio e interface
+- `src/domain/`: regras de negócio e estado da partida, sem dependência de UI
+- `src/infrastructure/`: persistência e integrações externas
+- `src/presentation/`: lógica de apresentação e integração com cenas Godot
+
+<a id="como-executar"></a>
+## Como Executar
+
+Pré-requisitos:
+
+- Godot 4.x
+- Rust instalado (`rustup`)
+- Cargo
+
+1. Clonar o repositório:
+
+```bash
+git clone https://github.com/Victor-Saraiva-P/Batalha_Naval_PLP.git
+cd Batalha_Naval_PLP
+```
+
+2. Compilar a extensão Rust:
+
+```bash
+cargo build
+```
+
+3. Abrir no Godot:
+
+- Abrir o projeto pelo arquivo `project.godot`
+- Executar a cena inicial (menu principal)
+
+Comandos úteis durante o desenvolvimento:
+
+```bash
+cargo build
+cargo check
+cargo test
+```
+
+<a id="faq"></a>
+## FAQ
+
+**O Godot não reconhece a extensão Rust.**
+
+- Execute `cargo build` novamente
+- Verifique se `batalha_naval.gdextension` está na raiz do projeto
+- Feche e abra o Godot para recarregar a extensão
+
+**Alterei código Rust e não refletiu no jogo.**
+
+- Recompile com `cargo build`
+- Reinicie a cena em execução no Godot
 
 ---
 
 <a id="integrantes"></a>
-## 👥 Integrantes do Projeto
+## Integrantes
 
 <table>
   <tr>
@@ -51,203 +206,25 @@ Projeto acadêmico desenvolvido para a disciplina de **Paradigmas de Linguagens 
       </a>
     </td>
     <td align="center">
-      <a href="#" title="Perfil do Marcos">
+      <a href="https://github.com/vinibcc" title="Perfil do Marcos">
         <img src="docs/fotos/vini-foto.png" width="110px" alt="Foto do Marcos Vinicius"/><br>
         <sub><b>Marcos Vinicius Sousa</b></sub><br>
         <sub>@vinibcc</sub>
       </a>
     </td>
     <td align="center">
-      <a href="#" title="Perfil do Ryan">
+      <a href="https://github.com/Ryan079" title="Perfil do Ryan">
         <img src="docs/fotos/ryan-foto.jpg" width="110px" alt="Foto do Ryan Oliveira"/><br>
         <sub><b>Ryan Oliveira Marques</b></sub><br>
-        <sub>@a-definir</sub>
+        <sub>@Ryan079</sub>
       </a>
     </td>
   </tr>
 </table>
 
-> TODO: atualizar links de GitHub pendentes dos integrantes com `href="#"`.
-
-## 📚 Navegação da Documentação
-
-- [📑 Índice](#indice)
-- [👥 Integrantes do Projeto](#integrantes)
-- [✅ Checklist de Pendências](#checklist)
-- [🚀 Como Rodar o Projeto](#como-rodar)
-- [❓ FAQ / Troubleshooting](#faq)
-- [🛠️ Tecnologias Utilizadas](#tecnologias)
-- [📞 Contato](#contato)
-
-<a id="indice"></a>
-## 📑 Índice
-
-- [Preview](#preview)
-- [Checklist de Pendências](#checklist)
-- [Regras de Negócio Automatizadas](#regras-de-negócio-automatizadas)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Fluxo da Jogada](#fluxo-da-jogada)
-
-<a id="checklist"></a>
-## ✅ Checklist de Pendências
-
-- [x] Estrutura base do README organizada
-- [x] Seção de integrantes com fotos
-- [x] Badge de Rust e Godot
-- [x] Link "Voltar ao topo"
-- [ ] Atualizar links de GitHub que ainda estao com `href="#"`
-- [ ] Definir usuario final do Ryan (trocar `@a-definir`)
-- [ ] Adicionar preview final (imagem/GIF oficial da versao pronta)
-- [ ] Revisar e validar a seção de FAQ com base na versao final do projeto
-
-## Preview
-
-Preview atual do projeto:
-
-> TODO: adicionar imagem ou GIF final da gameplay quando a versao estiver pronta.
-
-Exemplo de uso quando estiver pronto:
-
-```md
-![Preview do jogo](ship-game.gif)
-```
-
-## Regras de Negócio Automatizadas
-
-As principais regras da partida estao encapsuladas na camada de dominio:
-
-- Validacao de jogada (tiro em celula valida).
-- Resultado de disparo (`acerto`, `agua`, repeticao de jogada).
-- Atualizacao do estado do tabuleiro apos cada acao.
-- Mensagens de retorno para feedback da jogada.
-
-Arquivos principais:
-
-- `src/domain/disparo.rs`
-- `src/domain/tabuleiro.rs`
-- `src/domain/jogador.rs`
-- `src/domain/jogador_ia.rs`
-
-<a id="como-rodar"></a>
-## 🚀 Como Rodar o Projeto
-
-### Requisitos
-
-- Godot 4.x
-- Rust (toolchain estavel)
-- Cargo
-
-### Passo a passo
-
-1. Clone o repositorio:
-
-```bash
-git clone https://github.com/Victor-Saraiva-P/Batalha_Naval_PLP.git
-cd Batalha_Naval_PLP
-```
-
-2. Compile a extensao Rust:
-
-```bash
-cargo build
-```
-
-3. Abra o projeto no Godot:
-
-- Abra o arquivo `project.godot`.
-- Execute a cena principal do projeto (menu inicial).
-
-<a id="faq"></a>
-## ❓ FAQ / Troubleshooting
-
-**1. O Godot nao reconhece a extensao Rust. O que fazer?**
-
-- Rode `cargo build` novamente.
-- Verifique se o arquivo `batalha_naval.gdextension` esta na raiz do projeto.
-- Feche e reabra o Godot para recarregar a extensao.
-
-**2. A imagem do README nao aparece no GitHub.**
-
-- Confirme se o arquivo existe em `assets/images/`.
-- Verifique se o nome do arquivo esta igual ao caminho no README.
-
-**3. Alterei codigo Rust e nada mudou no jogo.**
-
-- Recompile com `cargo build`.
-- Reinicie a cena no Godot.
-
-<a id="tecnologias"></a>
-## 🛠️ Tecnologias Utilizadas
-
-- Godot Engine
-- Rust
-- GDExtension
-
-## Estrutura do Projeto
-
-```text
-src/
-|-- lib.rs
-|-- application/
-|   |-- controlador_batalha.rs
-|   `-- mod.rs
-|-- domain/
-|   |-- disparo.rs
-|   |-- jogador.rs
-|   |-- jogador_ia.rs
-|   |-- tabuleiro.rs
-|   `-- mod.rs
-`-- presentation/
-    |-- batalha/
-    |   `-- renderizacao_tabuleiro/
-    |-- legacy/
-    `-- mod.rs
-```
-
-### O que cada camada faz
-
-- `src/lib.rs`: ponto de entrada da biblioteca Rust e registro da extensao com `#[gdextension]`.
-- `src/application/`: coordenacao de fluxo de jogo e entrada do usuario.
-- `src/domain/`: regras de negocio e estado do jogo, sem dependencia da UI.
-- `src/presentation/`: logica de cena e renderizacao no Godot.
-
-## Fluxo da Jogada
-
-1. O usuario clica no tabuleiro inimigo.
-2. `ControladorBatalha` converte o clique em coordenada de celula.
-3. O dominio (`executar_disparo`) retorna resultado + mensagem.
-4. O controller imprime a mensagem e atualiza o tile correspondente.
-
-## Como adicionar imagens no README
-
-1. Crie a pasta de imagens do projeto:
-
-```powershell
-New-Item -ItemType Directory -Force assets\images
-```
-
-2. Coloque sua imagem na pasta, por exemplo:
-
-- `assets/images/preview-menu.png`
-- `assets/images/preview-batalha.png`
-
-3. Referencie no `README.md` assim:
-
-```md
-![Tela inicial](assets/images/preview-menu.png)
-```
-
-4. Para GIF (demonstracao), use o mesmo formato:
-
-```md
-![Gameplay](assets/images/gameplay.gif)
-```
-
 <a id="contato"></a>
+## Contato
 
-## 📞 Contato
+Dúvidas, sugestões ou contribuições podem ser enviadas pelos perfis do GitHub listados na seção [Integrantes](#integrantes).
 
-Para dúvidas, sugestões ou contribuições, entre em contato com qualquer um dos integrantes através dos perfis do GitHub listados na seção [Integrantes do Projeto](#integrantes).
-
-
-[⬆ Voltar ao topo](#topo)
+[Voltar ao topo](#topo)
