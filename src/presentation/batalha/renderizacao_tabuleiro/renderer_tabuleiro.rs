@@ -4,67 +4,121 @@ use godot::prelude::*;
 use crate::domain::disparo::ResultadoDisparo;
 use crate::domain::tabuleiro::{Celula, EstadoTabuleiro, BOARD_SIZE};
 use crate::presentation::batalha::renderizacao_tabuleiro::atlas_tiles::{
-    ATLAS_AGUA_1, ATLAS_AGUA_2, ATLAS_AGUA_ATINGIDA, 
-    ATLAS_NAVIO_ATINGIDO, ATLAS_NAVIO_AFUNDADO,
+    ATLAS_AGUA_1, ATLAS_AGUA_2, ATLAS_AGUA_ATINGIDA, ATLAS_HIT_MARKER,
+    COL_INTACTO, COL_DANIFICADO, COL_DESTRUIDO,
+    SOURCE_AGUA,
 };
 use crate::presentation::batalha::renderizacao_tabuleiro::estilo_preview::{
     cor_preview_invalido, cor_preview_valido,
 };
-use crate::presentation::batalha::renderizacao_tabuleiro::navio_tiles::atlas_navio_por_nome;
+use crate::presentation::batalha::renderizacao_tabuleiro::navio_tiles::atlas_segmento_navio;
 
-// Retorna a sprite de água correta baseado no padrão xadrez
 fn obter_sprite_agua(x: usize, y: usize) -> (i32, i32) {
-    if (x + y) % 2 == 0 {
-        ATLAS_AGUA_1
-    } else {
-        ATLAS_AGUA_2
-    }
+    if (x + y) % 2 == 0 { ATLAS_AGUA_1 } else { ATLAS_AGUA_2 }
 }
 
-pub fn render_resultado_disparo(
-    map: &mut Gd<TileMapLayer>,
-    map_coord: Vector2i,
-    resultado: &ResultadoDisparo,
-) {
-    match resultado {
-        ResultadoDisparo::Agua => {
-            map.set_cell_ex(map_coord)
-                .source_id(0)
-                .atlas_coords(Vector2i::new(ATLAS_AGUA_ATINGIDA.0, ATLAS_AGUA_ATINGIDA.1))
-                .done();
-        }
-        ResultadoDisparo::Acerto => {
-            map.set_cell_ex(map_coord)
-                .source_id(0)
-                .atlas_coords(Vector2i::new(ATLAS_NAVIO_ATINGIDO.0, ATLAS_NAVIO_ATINGIDO.1))
-                .done();
-        }
-        ResultadoDisparo::Afundou(_) => {
-            // Apenas renderiza a célula clicada
-            // render_navio_afundado() deve ser chamado depois para renderizar o navio inteiro
-            map.set_cell_ex(map_coord)
-                .source_id(0)
-                .atlas_coords(Vector2i::new(ATLAS_NAVIO_AFUNDADO.0, ATLAS_NAVIO_AFUNDADO.1))
-                .done();
-        }
-        ResultadoDisparo::JaDisparado | ResultadoDisparo::ForaDosLimites => {}
-    }
-}
-
-/// Renderiza todas as células de um navio afundado
-pub fn render_navio_afundado(
-    map: &mut Gd<TileMapLayer>,
+fn obter_info_segmento(
     tabuleiro: &EstadoTabuleiro,
     navio_idx: usize,
+    cx: usize,
+    cy: usize,
+) -> Option<(usize, bool, usize)> {
+    let tamanho = tabuleiro.navios.get(navio_idx)?.tamanho;
+    let mut celulas = tabuleiro.obter_celulas_navio(navio_idx);
+    if celulas.is_empty() {
+        return None;
+    }
+
+    let first_x = celulas[0].0;
+    let horizontal = celulas.iter().all(|&(x, _)| x == first_x);
+
+    if horizontal {
+        celulas.sort_by_key(|&(_, y)| y);
+    } else {
+        celulas.sort_by_key(|&(x, _)| x);
+    }
+
+    let segmento = celulas.iter().position(|&(x, y)| x == cx && y == cy)?;
+    Some((segmento, horizontal, tamanho))
+}
+
+// `board_map` recebe apenas água e marcadores de tiro (nunca é apagado por navios).
+// `ship_map`  recebe os sprites dos navios por segmento/estado/orientação.
+pub fn render_tabuleiro_jogador(
+    board_map: &mut Gd<TileMapLayer>,
+    ship_map: &mut Gd<TileMapLayer>,
+    tabuleiro: &EstadoTabuleiro,
 ) {
+    ship_map.clear();
+
     for x in 0..BOARD_SIZE {
         for y in 0..BOARD_SIZE {
-            if let Some(Celula::Afundado(idx)) = tabuleiro.valor_celula(x, y) {
-                if idx == navio_idx {
-                    let map_coord = Vector2i::new(y as i32, x as i32);
-                    map.set_cell_ex(map_coord)
-                        .source_id(0)
-                        .atlas_coords(Vector2i::new(ATLAS_NAVIO_AFUNDADO.0, ATLAS_NAVIO_AFUNDADO.1))
+            let map_coord = Vector2i::new(y as i32, x as i32);
+            let Some(celula) = tabuleiro.valor_celula(x, y) else { continue };
+
+            match celula {
+                Celula::Ocupado(navio_idx) => {
+                    if let Some((seg, horiz, tam)) =
+                        obter_info_segmento(tabuleiro, navio_idx, x, y)
+                    {
+                        let (source, atlas, alt) =
+                            atlas_segmento_navio(tam, seg, COL_INTACTO, horiz);
+                        ship_map
+                            .set_cell_ex(map_coord)
+                            .source_id(source)
+                            .atlas_coords(atlas)
+                            .alternative_tile(alt)
+                            .done();
+                    }
+                }
+                Celula::Atingido(navio_idx) => {
+                    if let Some((seg, horiz, tam)) =
+                        obter_info_segmento(tabuleiro, navio_idx, x, y)
+                    {
+                        let (source, atlas, alt) =
+                            atlas_segmento_navio(tam, seg, COL_DANIFICADO, horiz);
+                        ship_map
+                            .set_cell_ex(map_coord)
+                            .source_id(source)
+                            .atlas_coords(atlas)
+                            .alternative_tile(alt)
+                            .done();
+                    }
+                    board_map
+                        .set_cell_ex(map_coord)
+                        .source_id(SOURCE_AGUA)
+                        .atlas_coords(Vector2i::new(ATLAS_HIT_MARKER.0, ATLAS_HIT_MARKER.1))
+                        .done();
+                }
+                Celula::Afundado(navio_idx) => {
+                    if let Some((seg, horiz, tam)) =
+                        obter_info_segmento(tabuleiro, navio_idx, x, y)
+                    {
+                        let (source, atlas, alt) =
+                            atlas_segmento_navio(tam, seg, COL_DESTRUIDO, horiz);
+                        ship_map
+                            .set_cell_ex(map_coord)
+                            .source_id(source)
+                            .atlas_coords(atlas)
+                            .alternative_tile(alt)
+                            .done();
+                    }
+                }
+
+                Celula::AguaAtirada => {
+                    board_map
+                        .set_cell_ex(map_coord)
+                        .source_id(SOURCE_AGUA)
+                        .atlas_coords(Vector2i::new(ATLAS_AGUA_ATINGIDA.0, ATLAS_AGUA_ATINGIDA.1))
+                        .done();
+                }
+
+                Celula::Vazio => {
+                    let sprite = obter_sprite_agua(x, y);
+                    board_map
+                        .set_cell_ex(map_coord)
+                        .source_id(SOURCE_AGUA)
+                        .atlas_coords(Vector2i::new(sprite.0, sprite.1))
                         .done();
                 }
             }
@@ -72,47 +126,27 @@ pub fn render_navio_afundado(
     }
 }
 
-pub fn render_tabuleiro_jogador(map: &mut Gd<TileMapLayer>, tabuleiro: &EstadoTabuleiro) {
+/// Ao afundar um navio no tabuleiro inimigo, mostra os sprites no ship_map.
+pub fn render_navio_afundado(
+    ship_map: &mut Gd<TileMapLayer>,
+    tabuleiro: &EstadoTabuleiro,
+    navio_idx: usize,
+) {
     for x in 0..BOARD_SIZE {
         for y in 0..BOARD_SIZE {
-            let map_coord = Vector2i::new(y as i32, x as i32);
-            if let Some(celula) = tabuleiro.valor_celula(x, y) {
-                match celula {
-                    Celula::Ocupado(navio_idx) => {
-                        let atlas_navio = tabuleiro
-                            .navios
-                            .get(navio_idx)
-                            .map(|navio| atlas_navio_por_nome(&navio.nome))
-                            .unwrap_or(atlas_navio_por_nome(""));
-                        map.set_cell_ex(map_coord)
-                            .source_id(0)
-                            .atlas_coords(Vector2i::new(atlas_navio.0, atlas_navio.1))
-                            .done();
-                    }
-                    Celula::AguaAtirada => {
-                        map.set_cell_ex(map_coord)
-                            .source_id(0)
-                            .atlas_coords(Vector2i::new(ATLAS_AGUA_ATINGIDA.0, ATLAS_AGUA_ATINGIDA.1))
-                            .done();
-                    }
-                    Celula::Atingido(_) => {
-                        map.set_cell_ex(map_coord)
-                            .source_id(0)
-                            .atlas_coords(Vector2i::new(ATLAS_NAVIO_ATINGIDO.0, ATLAS_NAVIO_ATINGIDO.1))
-                            .done();
-                    }
-                    Celula::Afundado(_) => {
-                        map.set_cell_ex(map_coord)
-                            .source_id(0)
-                            .atlas_coords(Vector2i::new(ATLAS_NAVIO_AFUNDADO.0, ATLAS_NAVIO_AFUNDADO.1))
-                            .done();
-                    }
-                    Celula::Vazio => {
-                        // Renderizar água no padrão xadrez quando célula fica vazia (ex: navio removido)
-                        let sprite_agua = obter_sprite_agua(x, y);
-                        map.set_cell_ex(map_coord)
-                            .source_id(0)
-                            .atlas_coords(Vector2i::new(sprite_agua.0, sprite_agua.1))
+            if let Some(Celula::Afundado(idx)) = tabuleiro.valor_celula(x, y) {
+                if idx == navio_idx {
+                    if let Some((seg, horiz, tam)) =
+                        obter_info_segmento(tabuleiro, navio_idx, x, y)
+                    {
+                        let map_coord = Vector2i::new(y as i32, x as i32);
+                        let (source, atlas, alt) =
+                            atlas_segmento_navio(tam, seg, COL_DESTRUIDO, horiz);
+                        ship_map
+                            .set_cell_ex(map_coord)
+                            .source_id(source)
+                            .atlas_coords(atlas)
+                            .alternative_tile(alt)
                             .done();
                     }
                 }
@@ -121,27 +155,67 @@ pub fn render_tabuleiro_jogador(map: &mut Gd<TileMapLayer>, tabuleiro: &EstadoTa
     }
 }
 
+pub fn render_resultado_disparo(
+    board_map: &mut Gd<TileMapLayer>,
+    map_coord: Vector2i,
+    resultado: &ResultadoDisparo,
+) {
+    match resultado {
+        ResultadoDisparo::Agua => {
+            board_map
+                .set_cell_ex(map_coord)
+                .source_id(SOURCE_AGUA)
+                .atlas_coords(Vector2i::new(ATLAS_AGUA_ATINGIDA.0, ATLAS_AGUA_ATINGIDA.1))
+                .done();
+        }
+        ResultadoDisparo::Acerto => {
+            board_map
+                .set_cell_ex(map_coord)
+                .source_id(SOURCE_AGUA)
+                .atlas_coords(Vector2i::new(ATLAS_HIT_MARKER.0, ATLAS_HIT_MARKER.1))
+                .done();
+        }
+        ResultadoDisparo::Afundou(_) => {
+            board_map
+                .set_cell_ex(map_coord)
+                .source_id(SOURCE_AGUA)
+                .atlas_coords(Vector2i::new(ATLAS_HIT_MARKER.0, ATLAS_HIT_MARKER.1))
+                .done();
+        }
+        ResultadoDisparo::JaDisparado | ResultadoDisparo::ForaDosLimites => {}
+    }
+}
+
 pub fn render_preview_posicionamento(
     preview_map: &mut Gd<TileMapLayer>,
-    nome_navio: &str,
+    _nome_navio: &str,
     celulas: &[(usize, usize)],
     valido: bool,
 ) {
     preview_map.clear();
+    preview_map.set_modulate(if valido { cor_preview_valido() } else { cor_preview_invalido() });
 
-    if valido {
-        preview_map.set_modulate(cor_preview_valido());
+    let tamanho = celulas.len();
+    if tamanho == 0 { return; }
+
+    let first_x = celulas[0].0;
+    let horizontal = celulas.iter().all(|&(x, _)| x == first_x);
+
+    let mut ordenadas: Vec<(usize, usize)> = celulas.to_vec();
+    if horizontal {
+        ordenadas.sort_by_key(|&(_, y)| y);
     } else {
-        preview_map.set_modulate(cor_preview_invalido());
+        ordenadas.sort_by_key(|&(x, _)| x);
     }
 
-    let atlas_navio = atlas_navio_por_nome(nome_navio);
-
-    for (x, y) in celulas.iter() {
+    for (segmento, &(x, y)) in ordenadas.iter().enumerate() {
+        let (source, atlas, alt) =
+            atlas_segmento_navio(tamanho, segmento, COL_INTACTO, horizontal);
         preview_map
-            .set_cell_ex(Vector2i::new(*y as i32, *x as i32))
-            .source_id(0)
-            .atlas_coords(Vector2i::new(atlas_navio.0, atlas_navio.1))
+            .set_cell_ex(Vector2i::new(y as i32, x as i32))
+            .source_id(source)
+            .atlas_coords(atlas)
+            .alternative_tile(alt)
             .done();
     }
 }
