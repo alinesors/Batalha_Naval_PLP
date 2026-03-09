@@ -47,6 +47,8 @@ pub struct ControladorBatalha {
     tiros_ia_no_tabuleiro_jogador: [[bool; BOARD_SIZE]; BOARD_SIZE],
     resultado_final_emitido: bool,
     vitoria_registrada: Option<bool>,
+    acertos_seguidos_atual: u32,
+    max_acertos_seguidos: u32,
     base: Base<Node2D>,
 }
 
@@ -83,6 +85,8 @@ impl INode2D for ControladorBatalha {
             tiros_ia_no_tabuleiro_jogador: [[false; BOARD_SIZE]; BOARD_SIZE],
             resultado_final_emitido: false,
             vitoria_registrada: None,
+            acertos_seguidos_atual: 0,
+            max_acertos_seguidos: 0,
             base,
         }
     }
@@ -372,6 +376,16 @@ impl ControladorBatalha {
     }
 
     #[func]
+    pub fn obter_max_acertos_seguidos(&self) -> i32 {
+        self.max_acertos_seguidos as i32
+    }
+
+    #[func]
+    pub fn jogador_perdeu_algum_navio(&self) -> bool {
+        self.jogador_humano.tabuleiro().navios.iter().any(|n| n.esta_afundado())
+    }
+
+    #[func]
     pub fn alternar_xray(&mut self) {
         self.xray_ativo = !self.xray_ativo;
         self.atualizar_xray_ia();
@@ -589,11 +603,11 @@ impl ControladorBatalha {
                         sprite.set_rotation_degrees(-90.0);
                     }
 
-                    canvas.add_child(&sprite.upcast::<godot::classes::Node>());
+                    canvas.add_child(&sprite.upcast::<Node>());
                 }
             }
 
-            vbox.add_child(&canvas.upcast::<godot::classes::Node>());
+            vbox.add_child(&canvas.upcast::<Node>());
             
             // Botão clicável embaixo dos sprites
             let mut botao = Button::new_alloc();
@@ -774,8 +788,20 @@ impl ControladorBatalha {
         };
 
         render_resultado_disparo(&mut enemy_map, map_coord, &retorno.resultado);
+
         if retorno.resultado.foi_valido() {
             self.tiros_jogador_no_tabuleiro_ia[x][y] = true;
+
+            // --- CONTABILIZADOR DE ACERTOS SEGUIDOS ---
+            let acertou = matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_));
+            if acertou {
+                self.acertos_seguidos_atual += 1;
+                if self.acertos_seguidos_atual > self.max_acertos_seguidos {
+                    self.max_acertos_seguidos = self.acertos_seguidos_atual;
+                }
+            } else {
+                self.acertos_seguidos_atual = 0; // Errou, zera a contagem
+            }
         }
 
         // Efeito de fumaça ao acertar
@@ -799,14 +825,13 @@ impl ControladorBatalha {
         }
 
         if retorno.resultado.foi_valido() {
-            // Só tocar som se o disparo foi válido
             self.gerenciador_audio.tocar_disparo_com_resultado(&retorno.resultado);
-            
+
             let acertou = matches!(retorno.resultado, ResultadoDisparo::Acerto | ResultadoDisparo::Afundou(_));
             let afundou = matches!(retorno.resultado, ResultadoDisparo::Afundou(_));
-            
+
             self.gerenciador_turnos.processar_ataque_jogador(acertou, afundou);
-            
+
             if ia_perdeu {
                 return;
             }
@@ -814,7 +839,7 @@ impl ControladorBatalha {
             self.movimento_jogador_realizado = false;
             self.navio_selecionado_movimento = None;
             self.limpar_preview_posicionamento();
-            
+
             if !acertou && !self.gerenciador_turnos.jogo_terminou() {
                 self.tempo_restante_ia = DELAY_TURNO_IA;
             }

@@ -33,14 +33,14 @@ func _on_batalha_encerrada(vitoria: bool) -> void:
 
 	var usuario_node = UsuarioNode.new()
 	var login_atual = ""
-
+	
 	var caminho_absoluto = ProjectSettings.globalize_path("res://dados/usuario_atual.json")
 	var file = FileAccess.open(caminho_absoluto, FileAccess.READ)
-
+	
 	if file:
 		var json_text = file.get_as_text()
 		file.close()
-
+		
 		var dict = JSON.parse_string(json_text)
 		if dict is Dictionary:
 			login_atual = dict.get("login", "")
@@ -49,13 +49,21 @@ func _on_batalha_encerrada(vitoria: bool) -> void:
 		CampaignState.registrar_vitoria()
 		if login_atual != "":
 			usuario_node.registrar_vitoria(login_atual)
-
+			
 			var rodadas = controlador.call("obter_rodadas")
 			if rodadas <= 20:
-				var desbloqueou = usuario_node.adicionar_conquista(login_atual, "Marinheiro")
-				if desbloqueou:
-					print("DEBUG: Conquista 'Marinheiro' desbloqueada com ", rodadas, " turnos!")
-
+				usuario_node.adicionar_conquista(login_atual, "Marinheiro")
+				
+			var max_acertos = controlador.call("obter_max_acertos_seguidos")
+			if max_acertos >= 7:
+				usuario_node.adicionar_conquista(login_atual, "Capitao")
+			if max_acertos >= 8:
+				usuario_node.adicionar_conquista(login_atual, "CapitaoDeMarEGuerra")
+				
+			var perdeu_navio = controlador.call("jogador_perdeu_algum_navio")
+			if not perdeu_navio:
+				usuario_node.adicionar_conquista(login_atual, "Almirante")
+		
 		if CampaignState.vitorias >= 3 or CampaignState.campanha_concluida:
 			get_tree().change_scene_to_file(VITORIA_SCENE_PATH)
 		else:
@@ -65,5 +73,5 @@ func _on_batalha_encerrada(vitoria: bool) -> void:
 	CampaignState.registrar_derrota()
 	if login_atual != "":
 		usuario_node.registrar_derrota(login_atual)
-
+		
 	get_tree().change_scene_to_file(DERROTA_SCENE_PATH)
